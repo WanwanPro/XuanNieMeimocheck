@@ -1,0 +1,49 @@
+services:
+  meimoai-checkin:
+    build: .
+    image: meimoai-checkin:latest
+    container_name: meimoai-checkin
+    restart: unless-stopped
+    init: true
+    # 默认只绑定宿主机回环地址；需要局域网/公网访问时请先设置 WEB_PASSWORD，
+    # 并明确修改为 "7788:7788" 或通过带 TLS 的反向代理暴露。
+    ports:
+      - "127.0.0.1:7788:7788"
+    # 所有敏感配置从同目录 .env 文件读取（参考 .env.example），严禁明文写在本文件中
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+      - MEIMOAI_ACCOUNT=${MEIMOAI_ACCOUNT:-}
+      - MEIMOAI_PASSWORD=${MEIMOAI_PASSWORD:-}
+      - MEIMOAI_URL=${MEIMOAI_URL:-https://meimoai13.com/}
+      - RANDOM_DELAY=${RANDOM_DELAY:-true}
+      - RANDOM_DELAY_MAX_MINUTES=${RANDOM_DELAY_MAX_MINUTES:-300}
+      - SKIP_PROBABILITY=${SKIP_PROBABILITY:-0.05}
+      - MAX_CONSECUTIVE_FAILURES=${MAX_CONSECUTIVE_FAILURES:-3}
+      - PROXY_SERVER=${PROXY_SERVER:-}
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-0 1 * * *}
+      # Optional push channels, leave empty to disable
+      - WANWAN_PUSH_TOKEN=${WANWAN_PUSH_TOKEN:-}
+      - PUSHPLUS_TOKEN=${PUSHPLUS_TOKEN:-}
+      - SERVERCHAN_SENDKEY=${SERVERCHAN_SENDKEY:-}
+      - WEBHOOK_URL=${WEBHOOK_URL:-}
+      # 飞书企业 SSO（可选）
+      - FEISHU_SSO_ENABLED=${FEISHU_SSO_ENABLED:-false}
+      - FEISHU_APP_ID=${FEISHU_APP_ID:-}
+      - FEISHU_APP_SECRET=${FEISHU_APP_SECRET:-}
+      - FEISHU_REDIRECT_URI=${FEISHU_REDIRECT_URI:-}
+      - FEISHU_ALLOWED_TENANT_KEYS=${FEISHU_ALLOWED_TENANT_KEYS:-}
+      - FEISHU_ALLOWED_OPEN_IDS=${FEISHU_ALLOWED_OPEN_IDS:-}
+      - FEISHU_SCOPE=${FEISHU_SCOPE:-}
+      # Web management password (plaintext or scrypt$salt$hash), leave empty to disable authentication
+      - WEB_PASSWORD=${WEB_PASSWORD:-}
+      # 反向代理后按需配置，例如 1 或 loopback；修改后需重启容器
+      - WEB_TRUST_PROXY=${WEB_TRUST_PROXY:-}
+    volumes:
+      - checkin-data:/app/.browser-profile
+      - checkin-logs:/app/logs
+      - checkin-env:/app/.env-data
+
+volumes:
+  checkin-data:
+  checkin-logs:
+  checkin-env:

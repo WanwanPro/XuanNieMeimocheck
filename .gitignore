@@ -1,0 +1,19 @@
+# 敏感配置（凭据、token）
+.env
+.env.local
+.env.production
+deploy/.env
+
+# 依赖与构建产物
+node_modules/
+
+# 日志与镜像包
+logs/
+*.tar
+*.tar.gz
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+.npm-cache

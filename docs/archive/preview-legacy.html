@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeimoAI 签到管理系统</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+:root{--bg:#f0f4f8;--glass-bg:rgba(255,255,255,0.55);--glass-bg-hover:rgba(255,255,255,0.72);--glass-border:rgba(255,255,255,0.7);--glass-shadow:rgba(100,120,160,0.1);--text-primary:#1a2332;--text-secondary:#4a5568;--text-muted:#94a3b8;--accent-blue:#4f8ef7;--accent-indigo:#6366f1;--accent-green:#22c55e;--accent-amber:#f59e0b;--accent-red:#ef4444;--radius:18px;--radius-sm:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 550px 450px at 10% 15%,rgba(79,142,247,0.12) 0%,transparent 70%),radial-gradient(ellipse 500px 400px at 85% 80%,rgba(167,139,250,0.10) 0%,transparent 70%),radial-gradient(ellipse 450px 380px at 55% 45%,rgba(34,197,94,0.06) 0%,transparent 70%),radial-gradient(ellipse 350px 300px at 30% 85%,rgba(245,158,11,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;animation:bgFloat 25s ease-in-out infinite alternate}
+@keyframes bgFloat{0%{transform:scale(1)}100%{transform:scale(1.03)}}
+.container{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:28px 22px 48px}
+.header{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.header-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent-blue),var(--accent-indigo));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 6px 20px rgba(79,142,247,0.28);transition:transform 0.3s}
+.header-icon:hover{transform:rotate(-8deg) scale(1.05)}
+.header h1{font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-primary)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.header-time{font-size:0.72rem;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.header-sub{font-size:0.75rem;color:var(--text-muted);background:rgba(255,255,255,0.6);padding:4px 10px;border-radius:20px;font-weight:500}
+.card{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;margin-bottom:14px;box-shadow:0 4px 24px var(--glass-shadow),inset 0 1px 0 rgba(255,255,255,0.6);transition:box-shadow 0.3s,background 0.3s}
+.card:hover{background:var(--glass-bg-hover);box-shadow:0 8px 32px rgba(100,120,160,0.13),inset 0 1px 0 rgba(255,255,255,0.7)}
+.card-title{font-size:0.76rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title svg{width:15px;height:15px;opacity:0.55}
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.status-item{background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.65);border-radius:var(--radius-sm);padding:16px 12px;text-align:center;transition:all 0.25s;box-shadow:0 2px 8px rgba(100,120,160,0.06)}
+.status-item:hover{background:rgba(255,255,255,0.75);box-shadow:0 4px 16px rgba(100,120,160,0.1);transform:translateY(-2px)}
+.status-label{font-size:0.67rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px;display:flex;align-items:center;justify-content:center;gap:5px}
+.status-value{font-size:0.88rem;font-weight:600;color:var(--text-primary);word-break:break-all;line-height:1.4}
+.status-value.ok{color:var(--accent-green)}
+.status-value.warn{color:var(--accent-amber)}
+.status-value.err{color:var(--accent-red)}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;position:relative;top:-1px}
+.status-dot.green{background:var(--accent-green);box-shadow:0 0 10px rgba(34,197,94,0.45);animation:breathe 2s ease-in-out infinite}
+.status-dot.amber{background:var(--accent-amber);box-shadow:0 0 10px rgba(245,158,11,0.45);animation:breathe 1.5s ease-in-out infinite}
+.status-dot.red{background:var(--accent-red);box-shadow:0 0 10px rgba(239,68,68,0.45);animation:breathe 1s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(0.85)}}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+button{padding:9px 20px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-size:0.82rem;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px;position:relative;overflow:hidden}
+button::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(255,255,255,0.3),transparent 60%);opacity:0;transition:opacity 0.3s;pointer-events:none}
+button:hover::after{opacity:1}
+button svg{width:15px;height:15px}
+button.primary{background:linear-gradient(135deg,var(--accent-blue),var(--accent-indigo));color:#fff;box-shadow:0 4px 16px rgba(79,142,247,0.3)}
+button.primary:hover{box-shadow:0 6px 24px rgba(79,142,247,0.42);transform:translateY(-1px)}
+button.primary:active{transform:translateY(0)}
+button.primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+button.ghost{background:rgba(255,255,255,0.5);color:var(--text-secondary);border:1px solid rgba(200,210,225,0.5);backdrop-filter:blur(8px)}
+button.ghost:hover{background:rgba(255,255,255,0.8);border-color:rgba(180,195,215,0.7);color:var(--text-primary)}
+button.danger{background:rgba(239,68,68,0.08);color:var(--accent-red);border:1px solid rgba(239,68,68,0.18)}
+button.danger:hover{background:rgba(239,68,68,0.14);border-color:rgba(239,68,68,0.3)}
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(148,163,194,0.2),transparent);margin:4px 0 16px}
+.log-box{background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.6);border-radius:var(--radius-sm);padding:16px 18px;font-family:'Cascadia Code','Fira Code','JetBrains Mono',monospace;font-size:0.74rem;line-height:1.85;max-height:420px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;color:var(--text-secondary);counter-reset:log-line}
+.log-box::-webkit-scrollbar{width:5px}
+.log-box::-webkit-scrollbar-track{background:transparent}
+.log-box::-webkit-scrollbar-thumb{background:rgba(148,163,194,0.25);border-radius:3px}
+.log-box::-webkit-scrollbar-thumb:hover{background:rgba(148,163,194,0.4)}
+.log-line{display:block;padding:1px 0;border-left:3px solid transparent;padding-left:6px;margin-left:-3px;transition:background 0.15s}
+.log-line:hover{background:rgba(79,142,247,0.04)}
+.log-line.ok{border-left-color:var(--accent-green);color:#16a34a;font-weight:500}
+.log-line.err{border-left-color:var(--accent-red);color:var(--accent-red);font-weight:500}
+.log-line .ts{color:var(--text-muted);font-size:0.7rem}
+.log-line .highlight{background:rgba(79,142,247,0.08);border-radius:3px;padding:0 3px}
+.settings-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.settings-toggle{background:rgba(255,255,255,0.5);color:var(--text-secondary);border:1px solid rgba(200,210,225,0.5);border-radius:8px;padding:6px 16px;font-size:0.76rem;font-weight:600;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(8px)}
+.settings-toggle:hover{background:rgba(255,255,255,0.8);color:var(--text-primary)}
+.settings-body{overflow:hidden;max-height:0;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1),opacity 0.3s;opacity:0}
+.settings-body.open{max-height:2000px;opacity:1;margin-top:18px}
+.env-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.env-form label{display:flex;flex-direction:column;gap:5px}
+.env-form label.full-width{grid-column:1/-1}
+.env-form label span{font-size:0.7rem;font-weight:600;color:var(--text-muted);letter-spacing:0.02em}
+.env-form input{background:rgba(255,255,255,0.5);color:var(--text-primary);border:1px solid rgba(200,210,225,0.5);border-radius:10px;padding:10px 13px;font-family:inherit;font-size:0.82rem;transition:all 0.2s;outline:none;backdrop-filter:blur(6px)}
+.env-form input:focus{border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(79,142,247,0.12);background:rgba(255,255,255,0.7)}
+.env-form input::placeholder{color:var(--text-muted);opacity:0.55}
+.form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;margin-top:4px}
+.toast{position:fixed;top:24px;right:24px;padding:13px 24px;border-radius:14px;font-size:0.82rem;font-weight:600;z-index:9999;opacity:0;transform:translateY(-10px) scale(0.96);transition:opacity 0.3s,transform 0.3s;pointer-events:none;backdrop-filter:blur(16px)}
+.toast.show{opacity:1;transform:translateY(0) scale(1)}
+.toast.ok{background:rgba(255,255,255,0.8);color:#16a34a;border:1px solid rgba(34,197,94,0.2);box-shadow:0 4px 20px rgba(34,197,94,0.12)}
+.toast.fail{background:rgba(255,255,255,0.8);color:var(--accent-red);border:1px solid rgba(239,68,68,0.2);box-shadow:0 4px 20px rgba(239,68,68,0.12)}
+.next-checkin{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.12);border-radius:var(--radius-sm);margin-bottom:16px;font-size:0.78rem;color:var(--accent-indigo);font-weight:500}
+.next-checkin .countdown{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent-blue)}
+@media(max-width:640px){.container{padding:16px 12px 36px}.status-grid{grid-template-columns:1fr 1fr}.env-form{grid-template-columns:1fr}.btn-row{flex-direction:column}.btn-row button{justify-content:center}.header-right{flex-direction:column;align-items:flex-end;gap:4px}.header-time{display:none}.next-checkin{font-size:0.72rem}}
+.card{animation:cardIn 0.45s ease both}.card:nth-child(2){animation-delay:0.05s}.card:nth-child(3){animation-delay:0.10s}.card:nth-child(4){animation-delay:0.15s}.card:nth-child(5){animation-delay:0.20s}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+button.primary:not([disabled]){animation:pulse 3s ease-in-out infinite}button.primary:hover{animation:none}
+@keyframes pulse{0%,100%{box-shadow:0 4px 16px rgba(79,142,247,0.3)}50%{box-shadow:0 6px 28px rgba(79,142,247,0.48)}}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(240,244,248,0.85);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal-box{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(1.4);border:1px solid var(--glass-border);border-radius:22px;padding:36px 42px;width:360px;max-width:90vw;text-align:center;box-shadow:0 12px 48px rgba(100,120,160,0.18),inset 0 1px 0 rgba(255,255,255,0.6);transform:scale(0.92) translateY(10px);transition:transform 0.3s}
+.modal-overlay.show .modal-box{transform:scale(1) translateY(0)}
+.modal-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.modal-icon.loading{background:linear-gradient(135deg,var(--accent-blue),var(--accent-indigo));box-shadow:0 6px 24px rgba(79,142,247,0.3);animation:float 2s ease-in-out infinite}
+.modal-icon.success{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 24px rgba(34,197,94,0.3)}
+.modal-icon.fail{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 6px 24px rgba(239,68,68,0.3)}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.modal-msg{font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:22px;min-height:20px}
+.modal-close{padding:10px 32px}
+.modal-spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;margin:0 auto;animation:spin 0.8s linear infinite}
+.modal-progress{display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.78rem;color:var(--accent-indigo);margin-bottom:16px}
+.modal-progress .dot{width:6px;height:6px;background:var(--accent-indigo);border-radius:50%;animation:dotBounce 1.4s ease-in-out infinite}
+.modal-progress .dot:nth-child(2){animation-delay:0.2s}
+.modal-progress .dot:nth-child(3){animation-delay:0.4s}
+@keyframes dotBounce{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;color:var(--text-muted);text-align:center}
+.empty-state svg{width:48px;height:48px;opacity:0.3;margin-bottom:12px}
+.empty-state .empty-title{font-size:0.85rem;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+.empty-state .empty-desc{font-size:0.74rem;color:var(--text-muted)}
+/* Skeleton */
+.skeleton{position:relative;overflow:hidden;background:rgba(200,210,225,0.2);border-radius:6px}
+.skeleton::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.5) 50%,transparent 100%);animation:shimmer 1.5s ease-in-out infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.skeleton-line{height:14px;margin-bottom:8px;border-radius:6px}
+.skeleton-line.w60{width:60%}.skeleton-line.w80{width:80%}.skeleton-line.w40{width:40%}.skeleton-line.w100{width:100%}
+</style>
+</head>
+<body>
+
+<div class="container" id="mainContent">
+<div class="header">
+<div class="header-icon">⚡</div>
+<h1>MeimoAI 签到管理系统</h1>
+<div class="header-right">
+<span class="header-time" id="headerTime"></span>
+<span class="header-sub">v1.1.0</span>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>运行状态</div>
+<div class="next-checkin" id="nextCheckinWrap">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+下次签到：<span class="countdown" id="nextCheckin">--</span>
+</div>
+<div class="status-grid" id="statusGrid">
+<div class="status-item"><div class="status-label">上次签到</div><div class="status-value ok" id="lastResult"><svg style="width:14px;height:14px;vertical-align:middle;margin-right:3px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>[2025-07-06 01:00:12] 签到成功，当前余额: 8563</div></div>
+<div class="status-item"><div class="status-label">定时任务</div><div class="status-value ok" id="cronStatus"><span class="status-dot green"></span>已启用</div></div>
+<div class="status-item"><div class="status-label">定时规则</div><div class="status-value" id="cronSchedule">0 1 * * *</div></div>
+<div class="status-item"><div class="status-label">账号</div><div class="status-value" id="account">3292870017@qq.com</div></div>
+<div class="status-item"><div class="status-label">随机延迟</div><div class="status-value" id="randomDelay">开启 (0~300分钟)</div></div>
+<div class="status-item"><div class="status-label">错误截图</div><div class="status-value ok" id="errScreenshot">无</div></div>
+</div>
+<div class="divider"></div>
+<div class="btn-row">
+<button class="primary" onclick="runCheckin(this)" id="checkinBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>手动签到</button>
+<button class="ghost" onclick="refreshWithBtn(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>刷新状态</button>
+</div>
+</div>
+
+<div class="card">
+<div class="settings-header" onclick="toggleLogs()">
+<div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>签到日志 <span id="logCount" style="font-size:0.65rem;opacity:0.5">(18条)</span></div>
+<button class="settings-toggle" id="logsBtn">展开</button>
+</div>
+<div class="settings-body" id="logsBody">
+<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+<button class="ghost" onclick="loadLogs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>刷新日志</button>
+<button class="danger" onclick="clearLogs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>清空日志</button>
+<label style="margin-left:auto;display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--text-muted);cursor:pointer"><input type="checkbox" id="autoScroll" checked style="accent-color:var(--accent-blue)">自动滚动</label>
+</div>
+<div class="log-box" id="logBox"><span class="log-line"><span class="ts">[2025-07-05 01:02:15]</span> === MeimoAI 签到服务已启动 ===</span>
+<span class="log-line"><span class="ts">[2025-07-05 01:02:15]</span> 定时规则: 0 1 * * *</span>
+<span class="log-line"><span class="ts">[2025-07-05 01:02:15]</span> 账号: 3292870017@qq.com</span>
+<span class="log-line"><span class="ts">[2025-07-05 01:03:22]</span> <span class="highlight">启动</span>签到流程...</span>
+<span class="log-line"><span class="ts">[2025-07-05 01:03:28]</span> 已登录状态，跳过登录</span>
+<span class="log-line"><span class="ts">[2025-07-05 01:03:35]</span> 找到签到按钮，点击中...</span>
+<span class="log-line ok"><span class="ts">[2025-07-05 01:03:36]</span> <span class="highlight">签到成功</span>，当前余额: 8520</span>
+<span class="log-line"><span class="ts">[2025-07-05 01:03:37]</span> 推送通知已发送 (Wanwan)</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:05]</span> <span class="highlight">启动</span>签到流程...</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:08]</span> 随机延迟: 7秒</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:16]</span> 已登录状态，跳过登录</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:18]</span> 导航到电量页面...</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:22]</span> 找到签到按钮，点击中...</span>
+<span class="log-line ok"><span class="ts">[2025-07-06 01:00:23]</span> <span class="highlight">签到成功</span>，当前余额: 8563</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:24]</span> 推送通知已发送 (Wanwan)</span>
+<span class="log-line"><span class="ts">[2025-07-06 01:00:24]</span> 签到流程完成</span>
+<span class="log-line"><span class="ts">[2025-07-06 14:32:10]</span> <span class="highlight">手动签到</span><span class="highlight">启动</span></span>
+<span class="log-line"><span class="ts">[2025-07-06 14:32:15]</span> 今日已签到，无需重复签到</span></div>
+</div>
+</div>
+
+<div class="card">
+<div class="settings-header" onclick="toggleSettings()">
+<div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>设置</div>
+<button class="settings-toggle" id="settingsBtn">展开</button>
+</div>
+<div class="settings-body" id="settingsBody">
+<form class="env-form" id="envForm" onsubmit="saveEnv(event)">
+<label><span>MEIMOAI_ACCOUNT</span><input name="MEIMOAI_ACCOUNT" placeholder="登录账号" value="3292870017@qq.com"></label>
+<label><span>MEIMOAI_PASSWORD</span><input name="MEIMOAI_PASSWORD" type="password" placeholder="登录密码（留空不修改）" value="********"></label>
+<label><span>MEIMOAI_URL</span><input name="MEIMOAI_URL" placeholder="https://meimoai13.com/" value="https://meimoai13.com/"></label>
+<label><span>CRON_SCHEDULE (cron 表达式)</span><input name="CRON_SCHEDULE" placeholder="0 1 * * *" value="0 1 * * *"></label>
+<label><span>RANDOM_DELAY (true/false)</span><input name="RANDOM_DELAY" placeholder="true" value="true"></label>
+<label><span>RANDOM_DELAY_MAX_MINUTES</span><input name="RANDOM_DELAY_MAX_MINUTES" placeholder="300" value="300"></label>
+<label><span>WANWAN_PUSH_TOKEN</span><input name="WANWAN_PUSH_TOKEN" placeholder="可选" value="44f90e3ae8a8410abb168f4b157428d7"></label>
+<label><span>PUSHPLUS_TOKEN</span><input name="PUSHPLUS_TOKEN" placeholder="可选" value=""></label>
+<label><span>SERVERCHAN_SENDKEY</span><input name="SERVERCHAN_SENDKEY" placeholder="可选" value=""></label>
+<label><span>WEBHOOK_URL</span><input name="WEBHOOK_URL" placeholder="可选" value=""></label>
+<label class="full-width"><span>WEB_PASSWORD (管理密码)</span><input name="WEB_PASSWORD" type="password" placeholder="留空不修改" value=""></label>
+<div class="form-actions"><button type="submit" class="primary" style="animation:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>保存配置</button></div>
+</form>
+</div>
+</div>
+
+</div>
+
+<!-- Checkin Modal -->
+<div class="modal-overlay" id="checkinModal">
+<div class="modal-box">
+<div class="modal-icon loading" id="modalIcon"><div class="modal-spinner"></div></div>
+<div class="modal-title" id="modalTitle">正在签到</div>
+<div class="modal-msg" id="modalMsg">
+<div class="modal-progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span>签到任务执行中，请耐心等待</div>
+</div>
+<button class="primary modal-close" id="modalCloseBtn" style="display:none" onclick="closeModal()">知道了</button>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function updateClock() {
+  const el = document.getElementById('headerTime');
+  if (el) {
+    const now = new Date();
+    el.textContent = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false, month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+document.addEventListener('mousemove', e => {
+  const btn = e.target.closest('button');
+  if (btn) { btn.style.setProperty('--x', e.offsetX + 'px'); btn.style.setProperty('--y', e.offsetY + 'px'); }
+});
+
+function toggleSettings() {
+  const body = document.getElementById('settingsBody');
+  const btn = document.getElementById('settingsBtn');
+  body.classList.toggle('open');
+  btn.textContent = body.classList.contains('open') ? '收起' : '展开';
+}
+
+function toggleLogs() {
+  const body = document.getElementById('logsBody');
+  const btn = document.getElementById('logsBtn');
+  body.classList.toggle('open');
+  btn.textContent = body.classList.contains('open') ? '收起' : '展开';
+}
+
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+function showModal(icon, title, msg, showClose) {
+  const overlay = document.getElementById('checkinModal');
+  const iconEl = document.getElementById('modalIcon');
+  const titleEl = document.getElementById('modalTitle');
+  const msgEl = document.getElementById('modalMsg');
+  const closeBtn = document.getElementById('modalCloseBtn');
+  iconEl.className = 'modal-icon ' + icon;
+  iconEl.innerHTML = icon === 'loading' ? '<div class="modal-spinner"></div>' : (icon === 'success' ? '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>');
+  titleEl.textContent = title;
+  msgEl.innerHTML = msg;
+  closeBtn.style.display = showClose ? 'inline-flex' : 'none';
+  overlay.classList.add('show');
+}
+function closeModal() {
+  document.getElementById('checkinModal').classList.remove('show');
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function calcNextCheckin(cronExpr) {
+  if (!cronExpr) return null;
+  const parts = cronExpr.trim().split(/\s+/);
+  if (parts.length < 5) return null;
+  const [min, hour] = parts.map(Number);
+  const now = new Date();
+  const bjNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+  const next = new Date(bjNow);
+  next.setHours(hour, min, 0, 0);
+  if (next <= bjNow) next.setDate(next.getDate() + 1);
+  const diffMs = next - bjNow;
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  const s = Math.floor((diffMs % 60000) / 1000);
+  return { next, diffMs, display: h + '时' + m + '分' + s + '秒' };
+}
+
+function startCountdown(cronExpr) {
+  const el = document.getElementById('nextCheckin');
+  function tick() {
+    const info = calcNextCheckin(cronExpr);
+    if (!info) return;
+    el.textContent = info.display;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+startCountdown('0 1 * * *');
+
+function refreshWithBtn(btn) {
+  btn.innerHTML = '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>刷新中...';
+  setTimeout(() => {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>刷新状态';
+    toast('状态已刷新');
+  }, 1500);
+}
+
+// Demo: runCheckin with modal
+function runCheckin(btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>签到中...';
+  showModal('loading', '正在签到', '<div class="modal-progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span>签到任务执行中，请耐心等待</div>', false);
+  // Simulate checkin after 3 seconds
+  setTimeout(() => {
+    showModal('success', '签到成功', '[2025-07-06 15:30:22] 签到成功，当前余额: 8580', true);
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>手动签到';
+  }, 3000);
+}
+
+function clearLogs() {
+  if (!confirm('确定清空日志和错误截图？')) return;
+  toast('日志和截图已清空');
+  // Show empty state
+  document.getElementById('logBox').innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><div class="empty-title">暂无日志</div><div class="empty-desc">签到记录会在这里显示</div></div>';
+  document.getElementById('logCount').textContent = '(0条)';
+}
+
+function loadLogs() {
+  toast('日志已刷新');
+}
+
+function saveEnv(e) {
+  e.preventDefault();
+  toast('配置已保存');
+}
+</script>
+</body>
+</html>

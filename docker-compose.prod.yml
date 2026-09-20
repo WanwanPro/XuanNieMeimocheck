@@ -1,0 +1,20 @@
+services:
+  meimoai-checkin:
+    image: meimoai-checkin:latest
+    container_name: meimoai-checkin
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    # 默认只绑定本机回环地址，由 Caddy/Nginx 负责公网 HTTPS。
+    ports:
+      - "127.0.0.1:${HOST_PORT:-7788}:7788"
+    volumes:
+      - checkin-data:/app/.browser-profile
+      - checkin-logs:/app/logs
+      - checkin-env:/app/.env-data
+
+volumes:
+  checkin-data:
+  checkin-logs:
+  checkin-env:

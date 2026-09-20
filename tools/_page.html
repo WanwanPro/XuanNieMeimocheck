@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#eef2fb">
+<meta name="robots" content="noindex, nofollow">
+<title>MeimoAI · 值守台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%238ba2ff'/><stop offset='1' stop-color='%233a50d6'/></linearGradient></defs><rect width='32' height='32' rx='9' fill='url(%23g)'/><path d='M17.5 4 8 18h6l-1.5 10L22 14h-6z' fill='%23ffffff'/></svg>">
+<style>
+/* ============================================================
+   MeimoAI 值守台 · Liquid Glass Light
+   浅色玻璃底 + 雾面折射 + 冷调极光强调；衬线标题 / 等宽数字 / 无衬线正文。
+   完全离线：不加载任何远程字体、图标或 CDN 资源。
+   ============================================================ */
+:root{
+  --ink-950:#eef2fb; --ink-900:#f3f6fe; --ink-850:#f7f9ff; --ink-800:#ffffff;
+  --ink-750:#ffffff; --ink-700:#ffffff;
+  --line:rgba(17,24,48,.08); --line-2:rgba(17,24,48,.13); --line-3:rgba(17,24,48,.22);
+  --text:#11182b; --text-2:#33405a; --muted:#59657d; --faint:#5f6b85;
+  /* 变量名 --brass* 为历史遗留：浅色玻璃主题下承载冷调极光强调色 */
+  --accent:#3d55e8; --accent-2:#7d8cff; --accent-soft:rgba(61,85,232,.12);
+  --brass:var(--accent); --brass-2:var(--accent-2); --brass-soft:var(--accent-soft);
+  --jade:#0b855c; --jade-soft:rgba(11,133,92,.12);
+  --amber:#b45309; --amber-soft:rgba(180,83,9,.12);
+  --verm:#d92d20; --verm-soft:rgba(217,45,32,.11);
+  --r-lg:24px; --r:16px; --r-sm:11px;
+  --sans:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Noto Sans CJK SC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype","Songti SC","Noto Serif CJK SC",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono","Cascadia Code","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --glass-line:rgba(255,255,255,.86);
+  --glass-inset:inset 0 1px 0 rgba(255,255,255,.92),inset 0 -1px 0 rgba(255,255,255,.36);
+  --shadow:0 28px 62px -36px rgba(28,39,74,.42),0 2px 8px -4px rgba(28,39,74,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100vh;min-height:100dvh;font-family:var(--sans);font-size:15px;line-height:1.55;
+  color:var(--text);overflow-x:hidden;
+  background:
+    radial-gradient(1220px 840px at 12% -12%,#dee7ff 0%,rgba(222,231,255,0) 62%),
+    radial-gradient(1020px 740px at 98% -6%,#ffe4f1 0%,rgba(255,228,241,0) 60%),
+    radial-gradient(1000px 780px at 84% 108%,#d9f4ec 0%,rgba(217,244,236,0) 62%),
+    radial-gradient(880px 720px at 4% 96%,#e8e2ff 0%,rgba(232,226,255,0) 62%),
+    linear-gradient(165deg,#f8faff 0%,#eef2fb 48%,#f4f1ff 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+/* --- 氛围层：极细网格 + 流动极光光斑（液态玻璃的透光底） --- */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(to right,var(--line) 1px,transparent 1px),linear-gradient(to bottom,var(--line) 1px,transparent 1px);
+  background-size:76px 76px;opacity:.7;
+  -webkit-mask-image:radial-gradient(ellipse 90% 62% at 50% 0%,#000 6%,transparent 72%);
+  mask-image:radial-gradient(ellipse 90% 62% at 50% 0%,#000 6%,transparent 72%);
+}
+body::after{
+  content:"";position:fixed;inset:-14%;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(38% 34% at 16% 22%,rgba(96,132,255,.42),transparent 68%),
+    radial-gradient(34% 30% at 84% 14%,rgba(197,120,255,.30),transparent 68%),
+    radial-gradient(38% 34% at 80% 84%,rgba(72,206,186,.30),transparent 68%),
+    radial-gradient(32% 30% at 10% 86%,rgba(255,150,186,.26),transparent 70%);
+  filter:blur(38px) saturate(135%);
+  animation:aurora 30s ease-in-out infinite alternate;
+}
+@keyframes aurora{
+  from{transform:translate3d(-1.4%,-1%,0) scale(1)}
+  to{transform:translate3d(1.6%,1.4%,0) scale(1.06)}
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(19,26,46,.16);border-radius:10px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(19,26,46,.3);background-clip:content-box}
+.shell{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:22px 22px 56px}
+
+/* --- 顶栏（悬浮玻璃条） --- */
+.topbar{
+  position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:18px;
+  padding:12px 16px;margin-bottom:22px;border:1px solid var(--glass-line);border-radius:var(--r-lg);
+  background:linear-gradient(158deg,rgba(255,255,255,.84),rgba(255,255,255,.52));
+  backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  box-shadow:var(--shadow),var(--glass-inset);
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{
+  width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;color:#fff;
+  background:linear-gradient(150deg,#8ba2ff,#4b6bfb 58%,#3a50d6);
+  box-shadow:0 14px 28px -14px rgba(75,107,251,.85),inset 0 1px 0 rgba(255,255,255,.55);
+}
+.brand-mark svg{width:20px;height:20px}
+.brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.brand-text b{font-size:15px;font-weight:650;letter-spacing:.02em}
+.brand-text em{font-style:normal;font-size:10.5px;color:var(--faint);letter-spacing:.18em;text-transform:uppercase}
+.ver{font-family:var(--mono);font-size:10.5px;color:var(--accent);border:1px solid rgba(75,107,251,.24);border-radius:999px;padding:2px 9px;letter-spacing:.06em;background:var(--accent-soft)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.clock{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25}
+.clock-k{font-size:9.5px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+.clock-v{font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;color:var(--text-2);letter-spacing:.05em}
+.beacon{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2);border:1px solid var(--line-2);border-radius:999px;padding:5px 11px;background:rgba(255,255,255,.5)}
+.beacon i{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none;transition:.3s}
+.beacon[data-tone="ok"] i{background:var(--jade);box-shadow:0 0 0 3px var(--jade-soft)}
+.beacon[data-tone="warn"] i{background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
+.beacon[data-tone="err"] i{background:var(--verm);box-shadow:0 0 0 3px var(--verm-soft)}
+.beacon[data-tone="ok"] i,.beacon[data-tone="warn"] i,.beacon[data-tone="err"] i{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.4}}
+.icon-btn{
+  width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:11px;cursor:pointer;
+  background:rgba(255,255,255,.55);border:1px solid var(--line-2);color:var(--text-2);transition:.18s;
+}
+.icon-btn:hover{color:var(--accent);border-color:rgba(75,107,251,.32);background:rgba(255,255,255,.88)}
+.icon-btn svg{width:16px;height:16px}
+
+/* --- 按钮 --- */
+.btn{
+  font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.01em;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;
+  padding:10px 17px;border-radius:12px;border:1px solid transparent;position:relative;
+  transition:transform .16s,box-shadow .2s,background .2s,border-color .2s,color .2s;
+}
+.btn svg{width:16px;height:16px;flex:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-brass{background:linear-gradient(155deg,#7290ff,#4b6bfb 58%,#3a50d6);color:#fff;box-shadow:0 14px 30px -16px rgba(75,107,251,.95),inset 0 1px 0 rgba(255,255,255,.42)}
+.btn-brass:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 18px 36px -16px rgba(75,107,251,1),inset 0 1px 0 rgba(255,255,255,.55)}
+.btn-brass:active:not(:disabled){transform:translateY(0)}
+.btn-line{background:rgba(255,255,255,.58);border-color:var(--line-2);color:var(--text-2);box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.btn-line:hover:not(:disabled){color:var(--accent);border-color:rgba(75,107,251,.3);background:rgba(255,255,255,.9)}
+.btn-amber{background:var(--amber-soft);border-color:rgba(180,83,9,.3);color:var(--amber)}
+.btn-amber:hover:not(:disabled){background:rgba(180,83,9,.18)}
+.btn-verm{background:var(--verm-soft);border-color:rgba(217,45,32,.28);color:var(--verm)}
+.btn-verm:hover:not(:disabled){background:rgba(217,45,32,.17)}
+.btn-block{width:100%}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:10px}
+
+/* --- 通用元件 --- */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--text-2);background:rgba(255,255,255,.55);white-space:nowrap}
+.pill[data-tone="ok"]{color:var(--jade);border-color:rgba(14,159,110,.28);background:var(--jade-soft)}
+.pill[data-tone="warn"]{color:var(--amber);border-color:rgba(180,83,9,.26);background:var(--amber-soft)}
+.pill[data-tone="err"]{color:var(--verm);border-color:rgba(217,45,32,.26);background:var(--verm-soft)}
+.pill[data-tone="brass"]{color:var(--accent);border-color:rgba(75,107,251,.26);background:var(--accent-soft)}
+.chip{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(75,107,251,.22);border-radius:8px;padding:3px 9px}
+.lamp{width:11px;height:11px;border-radius:50%;flex:none;background:var(--muted);box-shadow:0 0 0 4px rgba(19,26,46,.05)}
+.lamp[data-tone="ok"]{background:var(--jade);box-shadow:0 0 0 4px var(--jade-soft)}
+.lamp[data-tone="warn"]{background:var(--amber);box-shadow:0 0 0 4px var(--amber-soft)}
+.lamp[data-tone="err"]{background:var(--verm);box-shadow:0 0 0 4px var(--verm-soft)}
+.lamp[data-tone="brass"]{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.spacer{margin-left:auto}
+.sk{position:relative;overflow:hidden;background:rgba(19,26,46,.09);border-radius:6px;display:inline-block;height:12px;width:70px;vertical-align:middle}
+.sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);animation:shim 1.4s ease-in-out infinite}
+@keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* --- 主面板：上次值守 / 下次值守（主玻璃板） --- */
+.board{
+  position:relative;display:grid;grid-template-columns:1.35fr .95fr;gap:0;margin-bottom:16px;
+  border:1px solid var(--glass-line);border-radius:var(--r-lg);overflow:hidden;
+  background:linear-gradient(158deg,rgba(255,255,255,.8),rgba(255,255,255,.44));
+  box-shadow:var(--shadow),var(--glass-inset);
+  backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);
+}
+.board::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--accent),rgba(75,107,251,0) 85%)}
+.board-main{padding:26px 28px 24px;border-right:1px solid var(--line);min-width:0}
+.board-side{padding:24px 26px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,rgba(75,107,251,.07),transparent 62%)}
+.board-k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+.board-state{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.board-verb{font-family:var(--serif);font-size:34px;line-height:1;font-weight:600;letter-spacing:.01em}
+.board-detail{color:var(--text-2);font-size:13.5px;margin-top:13px;max-width:54ch}
+.board-meta{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.meta{display:flex;flex-direction:column;gap:2px}
+.meta i{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.meta b{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text-2);font-variant-numeric:tabular-nums}
+.countdown{font-family:var(--mono);font-size:40px;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--accent);text-shadow:0 12px 30px rgba(75,107,251,.26)}
+.board-sched{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.board-next{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.board-actions{display:flex;gap:10px;margin-top:auto;padding-top:16px}
+.board-actions .btn{flex:1}
+
+/* --- 面板与栅格 --- */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.split{display:grid;grid-template-columns:1.45fr 1fr;gap:16px;margin-bottom:16px}
+.panel{
+  position:relative;border:1px solid var(--glass-line);border-radius:var(--r-lg);padding:20px 20px 18px;
+  background:linear-gradient(158deg,rgba(255,255,255,.74),rgba(255,255,255,.42));
+  box-shadow:var(--shadow),var(--glass-inset);min-width:0;
+  backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.panel-head h2{font-size:12px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
+.kv{list-style:none;display:flex;flex-direction:column}
+.kv li{display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.kv li:last-child{border-bottom:0;padding-bottom:0}
+.kv i{font-style:normal;font-size:12px;color:var(--muted);flex:none;min-width:62px}
+.kv b{margin-left:auto;text-align:right;font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--text);word-break:break-all;font-variant-numeric:tabular-nums}
+.gauges{display:flex;flex-direction:column;gap:13px;margin-bottom:14px}
+.gauge{display:flex;flex-direction:column;gap:6px}
+.gauge-top{display:flex;align-items:baseline;gap:8px}
+.gauge-top i{font-style:normal;font-size:12px;color:var(--muted)}
+.gauge-top b{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--text)}
+.gauge-top b em{font-style:normal;font-size:11px;color:var(--faint)}
+.track{height:5px;border-radius:999px;background:rgba(19,26,46,.1);overflow:hidden}
+.track>span{display:block;height:100%;width:0;border-radius:999px;background:var(--jade);transition:width .5s cubic-bezier(.2,.7,.2,1),background .3s}
+.gauge[data-tone="amber"] .track>span{background:var(--amber)}
+.gauge[data-tone="verm"] .track>span{background:var(--verm)}
+.shot{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.shot img{width:100%;display:block;border-radius:var(--r-sm);border:1px solid var(--line-2);cursor:zoom-in;transition:border-color .2s,transform .2s}
+.shot img:hover{border-color:rgba(75,107,251,.4);transform:translateY(-1px)}
+.shot-time{font-family:var(--mono);font-size:11px;color:var(--faint);margin-bottom:9px;display:block}
+
+/* --- 日志控制台（内凹玻璃） --- */
+.log-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.45)}
+.seg button{font-family:inherit;font-size:11.5px;font-weight:600;padding:6px 11px;cursor:pointer;background:transparent;border:0;border-right:1px solid var(--line);color:var(--muted);transition:.16s}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--text-2);background:rgba(255,255,255,.7)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.search{flex:1;min-width:150px;display:flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line-2);border-radius:10px;background:rgba(255,255,255,.45);color:var(--faint);transition:border-color .18s}
+.search:focus-within{border-color:rgba(75,107,251,.4)}
+.search svg{width:14px;height:14px;flex:none}
+.search input{flex:1;min-width:0;background:transparent;border:0;outline:none;color:var(--text);font-family:var(--mono);font-size:12px}
+.search input::placeholder{color:var(--faint)}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap}
+.toggle input{accent-color:var(--accent);width:13px;height:13px;cursor:pointer}
+.logbox{
+  font-family:var(--mono);font-size:12px;line-height:1.75;color:var(--text-2);
+  background:rgba(255,255,255,.5);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:10px 0;max-height:460px;overflow:auto;
+  box-shadow:inset 0 1px 3px rgba(19,26,46,.07),inset 0 -1px 0 rgba(255,255,255,.8);
+}
+.logbox.wrap-off{white-space:pre;overflow-x:auto}
+.logbox.wrap-soft{white-space:pre-wrap;word-break:break-word}
+.ln{display:flex;gap:10px;padding:1px 14px;border-left:2px solid transparent}
+.ln:hover{background:rgba(75,107,251,.07)}
+.ln-t{flex:none;color:var(--faint);font-size:11px}
+.ln-lv{flex:none;width:44px;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--faint)}
+.ln-m{flex:1;min-width:0}
+.ln[data-lv="ERROR"]{border-left-color:var(--verm)}
+.ln[data-lv="ERROR"] .ln-lv{color:var(--verm)}
+.ln[data-lv="ERROR"] .ln-m{color:#b42318}
+.ln[data-lv="WARN"]{border-left-color:var(--amber)}
+.ln[data-lv="WARN"] .ln-lv{color:var(--amber)}
+.ln[data-lv="WARN"] .ln-m{color:#b45309}
+.ln[data-lv="STEP"]{border-left-color:var(--accent)}
+.ln[data-lv="STEP"] .ln-lv{color:var(--accent)}
+.ln[data-lv="STEP"] .ln-m{color:#3a50d6}
+.ln[data-lv="INFO"] .ln-lv{color:#2563eb}
+.hl{background:rgba(75,107,251,.16);border-radius:3px;padding:0 3px;color:#2c3aa8}
+.hl-bad{background:rgba(217,45,32,.14);border-radius:3px;padding:0 3px;color:#b42318}
+.empty{padding:34px 16px;text-align:center;color:var(--faint);white-space:normal}
+.empty svg{width:30px;height:30px;opacity:.45;margin-bottom:10px}
+.empty b{display:block;color:var(--text-2);font-size:13px;font-weight:600;margin-bottom:3px}
+.empty span{font-size:12px}
+
+/* --- 运行记录 --- */
+.hist{list-style:none;display:flex;flex-direction:column;max-height:460px;overflow:auto;margin:-6px 0}
+.hist li{display:flex;align-items:center;gap:11px;padding:10px 2px;border-bottom:1px dashed var(--line)}
+.hist li:last-child{border-bottom:0}
+.hist .lamp{width:8px;height:8px;box-shadow:none}
+.hist-main{min-width:0;flex:1}
+.hist-main b{display:block;font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-main span{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.hist-gain{font-family:var(--mono);font-size:12px;color:var(--jade);flex:none}
+
+/* --- 设置 --- */
+.settings-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.settings-head h2{font-size:12px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
+.settings-head .chev{width:16px;height:16px;color:var(--muted);transition:transform .3s;flex:none}
+.settings.open .settings-head .chev{transform:rotate(180deg)}
+.settings-body{overflow:hidden;max-height:0;opacity:0;transition:max-height .45s cubic-bezier(.3,.7,.2,1),opacity .3s,margin .3s}
+.settings-body.open{max-height:6000px;opacity:1;margin-top:20px}
+.fieldset{border-top:1px solid var(--line);padding-top:18px;margin-top:18px}
+.fieldset:first-child{border-top:0;padding-top:0;margin-top:0}
+.fieldset>h3{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:13px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field>.field-k{font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--text-2);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.field>.field-k code{font-family:var(--mono);font-size:10.5px;color:var(--faint);font-weight:400}
+.field input,.field select{
+  width:100%;font-family:var(--mono);font-size:12.5px;color:var(--text);
+  background:rgba(255,255,255,.62);border:1px solid var(--line-2);border-radius:11px;padding:10px 12px;outline:none;
+  transition:border-color .18s,box-shadow .18s,background .18s;appearance:none;
+}
+.field select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px;cursor:pointer}
+.field select option{background:var(--ink-800);color:var(--text)}
+.field input::placeholder{color:var(--faint)}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:rgba(255,255,255,.92)}
+.field input[aria-invalid="true"]{border-color:var(--verm);box-shadow:0 0 0 3px var(--verm-soft)}
+.field-hint{font-size:11px;color:var(--faint);line-height:1.5}
+.field-hint.err{color:var(--verm)}
+.field-hint.warn{color:var(--amber)}
+.form-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.dirty{font-size:12px;color:var(--amber);display:inline-flex;align-items:center;gap:7px}
+.dirty::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.form-msg{font-size:12px;color:var(--muted)}
+.form-msg.err{color:var(--verm)}
+.form-msg.ok{color:var(--jade)}
+
+/* --- 页脚 --- */
+.foot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:22px 4px 0;margin-top:8px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint)}
+.foot code{font-family:var(--mono);color:var(--muted)}
+
+/* --- Toast --- */
+.toast{
+  position:fixed;left:50%;bottom:26px;z-index:9000;display:flex;align-items:center;gap:10px;
+  padding:11px 18px;border-radius:14px;font-size:13px;font-weight:600;color:var(--text);
+  background:rgba(255,255,255,.88);border:1px solid var(--glass-line);
+  backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 24px 48px -24px rgba(28,39,74,.5),var(--glass-inset);
+  opacity:0;pointer-events:none;transform:translate(-50%,16px);
+  transition:opacity .25s,transform .25s;max-width:min(90vw,460px);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+.toast.ok::before{background:var(--jade);box-shadow:0 0 10px var(--jade)}
+.toast.fail::before{background:var(--verm);box-shadow:0 0 10px var(--verm)}
+
+/* --- 登录门 --- */
+.gate{
+  position:fixed;inset:0;z-index:5000;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(22px + env(safe-area-inset-top,0px)) 22px calc(22px + env(safe-area-inset-bottom,0px));
+  background:radial-gradient(760px 520px at 50% 26%,rgba(75,107,251,.16),transparent 66%),rgba(240,244,255,.6);
+  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+}
+.gate-card{
+  position:relative;overflow:hidden;width:min(400px,100%);margin:auto 0;padding:34px 30px 30px;text-align:center;
+  border:1px solid var(--glass-line);border-radius:24px;
+  background:linear-gradient(158deg,rgba(255,255,255,.88),rgba(255,255,255,.6));
+  box-shadow:0 44px 92px -46px rgba(28,39,74,.55),var(--glass-inset);
+  backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);
+}
+.gate-card::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.gate-mark{width:52px;height:52px;margin:0 auto 18px;padding:0;border:0;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,#8ba2ff,#4b6bfb 60%,#3a50d6);box-shadow:0 18px 38px -18px rgba(75,107,251,.9),inset 0 1px 0 rgba(255,255,255,.5);cursor:pointer;appearance:none;-webkit-appearance:none;transition:transform .18s,box-shadow .18s}
+.gate-mark:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 21px 42px -18px rgba(75,107,251,.95),inset 0 1px 0 rgba(255,255,255,.5)}
+.gate-mark:focus-visible{outline:3px solid var(--accent-soft);outline-offset:3px}
+.gate-mark:disabled{cursor:default}
+.gate-mark svg{width:25px;height:25px;pointer-events:none}
+.gate-password{display:block}
+.gate-title{font-family:var(--serif);font-size:22px;margin-bottom:6px}
+.gate-sub{font-size:12.5px;color:var(--muted);margin-bottom:22px}
+.gate-form{display:flex;flex-direction:column;gap:14px;text-align:left}
+.gate-form input{width:100%;font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-align:center;color:var(--text);background:rgba(255,255,255,.68);border:1px solid var(--line-2);border-radius:12px;padding:12px;outline:none;transition:border-color .18s,box-shadow .18s}
+.gate-form input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.gate-error{font-size:12.5px;color:var(--verm);background:var(--verm-soft);border:1px solid rgba(217,45,32,.26);border-radius:10px;padding:8px 11px;animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* --- 弹层 --- */
+.modal{position:fixed;inset:0;z-index:6000;display:grid;place-items:center;padding:22px;background:rgba(238,242,251,.62);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility .25s}
+.modal.show{opacity:1;visibility:visible;pointer-events:auto}
+.modal-card{
+  width:min(430px,100%);text-align:center;padding:30px 30px 26px;border-radius:24px;
+  border:1px solid var(--glass-line);background:linear-gradient(158deg,rgba(255,255,255,.9),rgba(255,255,255,.64));
+  box-shadow:0 44px 92px -46px rgba(28,39,74,.55),var(--glass-inset);
+  backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);
+  transform:translateY(10px) scale(.97);transition:transform .25s;
+}
+.modal.show .modal-card{transform:none}
+.modal-icon{width:58px;height:58px;margin:0 auto 18px;border-radius:17px;display:grid;place-items:center}
+.modal-icon.loading{background:var(--accent-soft);border:1px solid rgba(75,107,251,.28)}
+.modal-icon.success{background:var(--jade-soft);border:1px solid rgba(14,159,110,.3)}
+.modal-icon.warn{background:var(--amber-soft);border:1px solid rgba(180,83,9,.3)}
+.modal-icon.fail{background:var(--verm-soft);border:1px solid rgba(217,45,32,.3)}
+.modal-icon svg{width:26px;height:26px}
+.modal-icon.success svg{color:var(--jade)}
+.modal-icon.warn svg{color:var(--amber)}
+.modal-icon.fail svg{color:var(--verm)}
+.modal-title{font-family:var(--serif);font-size:19px;margin-bottom:8px}
+.modal-msg{font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:22px;word-break:break-word}
+.modal-msg .detail{display:block;margin-top:9px;font-size:12px;color:var(--muted)}
+.modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.spinner{width:26px;height:26px;border:2.5px solid rgba(75,107,251,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dots{display:inline-flex;gap:5px;margin-right:8px;vertical-align:middle}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:dot 1.3s ease-in-out infinite}
+.dots i:nth-child(2){animation-delay:.18s}
+.dots i:nth-child(3){animation-delay:.36s}
+@keyframes dot{0%,70%,100%{opacity:.3;transform:scale(.7)}35%{opacity:1;transform:scale(1)}}
+
+/* --- 截图灯箱（深色聚焦层，保证图片可读） --- */
+.lightbox{position:fixed;inset:0;z-index:7000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:26px;background:rgba(22,29,48,.72);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility .25s}
+.lightbox.show{opacity:1;visibility:visible;pointer-events:auto}
+.lightbox img{max-width:100%;max-height:78vh;border-radius:16px;border:1px solid rgba(255,255,255,.3);box-shadow:0 40px 80px -36px rgba(8,12,24,.7)}
+.lightbox-bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* --- 入场动画 --- */
+.reveal{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.board{animation-delay:.02s}
+.grid-3{animation-delay:.08s}
+.split{animation-delay:.14s}
+.settings{animation-delay:.2s}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* --- 响应式 --- */
+@media (max-width:1020px){
+  .split{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr 1fr}
+  .panel:last-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .shell{padding:14px 14px 40px}
+  .topbar{flex-wrap:wrap;gap:12px;padding:11px 13px}
+  .clock{display:none}
+  .board{grid-template-columns:1fr}
+  .board-main{border-right:0;border-bottom:1px solid var(--line);padding:22px 20px 20px}
+  .board-side{padding:20px}
+  .board-verb{font-size:27px}
+  .countdown{font-size:32px}
+  .grid-3{grid-template-columns:1fr}
+  
+  .fields{grid-template-columns:1fr}
+  .board-actions{flex-direction:column}
+  .log-toolbar{gap:7px}
+  .search{order:3;flex-basis:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+
+/* ============================================================
+   飞书 SSO 登录门（浅色液态玻璃，冷蓝强调；不使用金色）
+   ============================================================ */
+.gate-sso{display:flex;flex-direction:column;gap:10px}
+.btn-feishu{
+  background:linear-gradient(150deg,#5b95ff,#3370ff 60%,#1f5ae0);color:#fff;
+  border-color:rgba(31,90,224,.55);font-size:14.5px;padding:13px 18px;
+  box-shadow:0 18px 34px -20px rgba(51,112,255,.95),inset 0 1px 0 rgba(255,255,255,.38);
+}
+.btn-feishu:hover:not(:disabled){filter:brightness(1.06);transform:translateY(-1px)}
+.btn-feishu:active:not(:disabled){transform:translateY(0) scale(.99)}
+.btn-feishu svg{width:18px;height:18px;flex:none}
+.gate-hint{font-size:11.5px;color:var(--faint);line-height:1.55;text-align:center}
+.gate-divider{display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:var(--faint);font-size:11px;letter-spacing:.08em}
+.gate-divider::before,.gate-divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line-2),transparent)}
+.gate-info{font-size:11.5px;color:var(--muted);background:rgba(75,107,251,.08);border:1px solid rgba(75,107,251,.18);border-radius:10px;padding:9px 11px;text-align:left;line-height:1.6;margin-top:14px}
+.spinner-sm{width:15px;height:15px;border-width:2px;border-color:rgba(255,255,255,.45);border-top-color:#fff;margin-right:8px}
+.btn .spinner-sm{display:inline-block;vertical-align:-2px}
+
+/* ============================================================
+   移动端 / 飞书手机端（适配 iOS 安全区、触控目标与窄屏布局）
+   ============================================================ */
+@media (max-width:760px){
+  .shell{
+    padding:10px 10px 30px;
+    padding-top:calc(10px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(34px + env(safe-area-inset-bottom,0px));
+  }
+  .topbar{position:sticky;top:env(safe-area-inset-top,0px);gap:10px;padding:9px 11px;margin-bottom:14px;border-radius:18px}
+  .brand{gap:9px}
+  .brand-mark{width:34px;height:34px;border-radius:10px}
+  .brand-mark svg{width:17px;height:17px}
+  .brand-text b{font-size:13.5px}
+  .brand-text em,.ver{display:none}
+  .topbar-right{gap:8px}
+  .beacon{padding:4px 9px;font-size:11px}
+  .icon-btn{width:40px;height:40px;border-radius:12px}
+  .board,.panel,.settings{border-radius:18px}
+  .board-main{padding:18px 16px 16px;border-right:0;border-bottom:1px solid var(--line)}
+  .board-side{padding:16px}
+  .board-verb{font-size:24px}
+  .countdown{font-size:29px}
+  .board-detail{font-size:12.5px}
+  .board-meta{gap:10px 20px;margin-top:16px;padding-top:14px}
+  .board-actions{flex-direction:column;gap:8px;padding-top:14px}
+  .board-actions .btn{width:100%}
+  .panel{padding:16px 15px 14px}
+  .grid-3,.split{gap:12px}
+  .fields{grid-template-columns:1fr;gap:13px}
+  .field.wide{grid-column:auto}
+  .settings-body.open{max-height:12000px}
+  .log-toolbar{gap:7px}
+  .search{order:3;flex-basis:100%}
+  .hist,.logbox{max-height:56vh;max-height:56dvh}
+  .foot{flex-direction:column;gap:6px;font-size:11px;text-align:center}
+
+  /* iOS 会对字号 <16px 的输入控件自动放大页面，这里统一提到 16px */
+  .field input,.field select,.gate-form input,.search input{font-size:16px}
+  .field input,.field select,.gate-form input{padding:12px 13px}
+  .search input{padding:2px 0}
+
+  /* 触控目标不小于 44px */
+  .btn{min-height:44px;padding:11px 16px}
+  .btn-sm{min-height:36px;padding:8px 12px}
+  .seg button{min-height:40px;padding:8px 13px}
+  .toggle{padding:6px 2px}
+  .toggle input{width:18px;height:18px}
+  .settings-head{padding:2px 0}
+
+  .gate{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));align-items:flex-start}
+  .gate-card{padding:26px 20px 22px;border-radius:20px}
+  .gate-title{font-size:20px}
+  .gate-sub{font-size:12px;margin-bottom:18px}
+  .modal{padding:14px;padding:calc(14px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px))}
+  .modal-card{padding:24px 18px 20px;max-height:88vh;max-height:88dvh;overflow:auto;border-radius:20px}
+  .modal-actions{flex-direction:column-reverse;gap:8px}
+  .modal-actions .btn{width:100%}
+  .lightbox{padding:14px;padding:calc(14px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px));gap:12px}
+  .lightbox img{max-height:64vh;max-height:64dvh;max-width:100%}
+  .lightbox-bar{width:100%}
+  .lightbox-bar .btn{flex:1}
+  .toast{left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateY(18px)}
+  .toast.show{transform:none}
+  .toast::before{left:14px}
+  body::after{filter:blur(24px) saturate(130%);animation-duration:50s}
+  .topbar,.board,.panel,.settings,.gate-card,.modal-card{backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
+  .icon-btn{width:44px;height:44px;border-radius:14px}
+  .btn-sm{min-height:44px;padding:10px 14px}
+  .seg button{min-height:44px;padding:10px 14px}
+  .toggle{min-height:44px;padding:8px 4px}
+}
+/* 飞书手机横屏：高度压缩时优先保证操作区可见，不依赖 hover。 */
+@media (orientation:landscape) and (max-height:520px){
+  .shell{
+    padding-top:calc(8px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));
+    padding-left:calc(8px + env(safe-area-inset-left,0px));
+    padding-right:calc(8px + env(safe-area-inset-right,0px));
+  }
+  .topbar{top:env(safe-area-inset-top,0px);margin-bottom:10px}
+  .gate{padding:calc(8px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px));align-items:flex-start}
+  .gate-card{width:min(620px,100%);margin:0 auto;padding:18px 22px}
+  .modal-card{max-height:88vh;max-height:88dvh;overflow:auto}
+  .lightbox img{max-height:58vh;max-height:58dvh}
+  .hist,.logbox{max-height:42vh;max-height:42dvh}
+  .modal,.lightbox{padding:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px))}
+  .toast{bottom:calc(12px + env(safe-area-inset-bottom,0px));left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px))}
+}
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .topbar,.board,.panel,.settings,.toast,.gate-card,.modal-card{background:rgba(255,255,255,.96);backdrop-filter:none;-webkit-backdrop-filter:none}
+  .gate,.modal{background:rgba(238,242,251,.97);backdrop-filter:none;-webkit-backdrop-filter:none}
+  .lightbox{background:rgba(22,29,48,.94);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+
+@media (max-width:400px){
+  .shell{padding-left:8px;padding-right:8px}
+  .board-verb{font-size:21px}
+  .countdown{font-size:26px}
+  .board-meta .meta{min-width:44%}
+}
+/* 触屏设备没有真实 hover：用 :active 提供反馈，避免状态只在悬停时可见 */
+@media (hover:none){
+  .icon-btn:hover,.btn-brass:hover:not(:disabled),.btn-line:hover:not(:disabled),.shot img:hover{transform:none}
+  .icon-btn:active,.btn:active:not(:disabled){transform:scale(.985)}
+  .ln:hover{background:transparent}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ============ 登录门 ============ -->
+<div class="gate" id="loginOverlay" hidden>
+  <div class="gate-card">
+    <button type="button" class="gate-mark" id="gateMark" aria-label="显示管理密码登录" aria-expanded="false" aria-controls="passwordPane">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+    </button>
+    <div class="gate-title">MeimoAI 值守台</div>
+    <div class="gate-sub" id="gateSub">输入管理密码以进入控制面板</div>
+    <div class="gate-error" id="loginError" role="alert" hidden></div>
+    <div class="gate-sso" id="feishuPane" hidden>
+      <button type="button" class="btn btn-feishu btn-block" id="feishuLoginBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.6 3.2 12 8.5l7.4-5.3 1.9 2.6L14.6 9.9l6.7 1.6-.7 3.1-6.8-2.4 3.3 5.6-2.8 1.7L12 14.2l-2.3 5.3-2.8-1.7 3.3-5.6-6.8 2.4L2.7 11.5l6.7-1.6L2.7 5.8z"/></svg>
+        飞书一键登录
+      </button>
+      <p class="gate-hint" id="feishuHint">在飞书 App 内打开本页面即可免密直达</p>
+    </div>
+    <div class="gate-password" id="passwordPane" hidden>
+      <div class="gate-divider" id="gateDivider" hidden><span>或使用管理密码</span></div>
+      <form class="gate-form" id="loginForm" hidden>
+        <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="管理密码" aria-label="管理密码">
+        <button type="submit" class="btn btn-brass btn-block" id="loginBtn">进入控制台</button>
+      </form>
+    </div>
+    <p class="gate-info" id="gateInfo" hidden></p>
+  </div>
+</div>
+
+<div class="shell" id="mainContent" hidden>
+
+  <!-- ============ 顶栏 ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span>
+      <span class="brand-text"><b>MeimoAI</b><em>Duty Console</em></span>
+      <span class="ver">v2.1.0</span>
+    </div>
+    <div class="topbar-right">
+      <div class="clock"><span class="clock-k">北京时间</span><span class="clock-v" id="clockTime">--:--:--</span></div>
+      <span class="beacon" id="beacon" role="status"><i></i><b id="beaconText">连接中</b></span>
+      <button type="button" class="icon-btn" id="logoutBtn" title="退出登录" aria-label="退出登录" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ 上次值守 / 下次值守 ============ -->
+  <section class="board reveal" aria-label="值守概览">
+    <div class="board-main">
+      <div class="board-k">上次值守</div>
+      <div class="board-state">
+        <span class="lamp" id="lastStateDot"></span>
+        <span class="board-verb" id="lastState">读取中</span>
+        <span class="pill" id="lastPill">--</span>
+      </div>
+      <p class="board-detail" id="lastDetail">正在读取运行状态…</p>
+      <div class="board-meta">
+        <span class="meta"><i>时间</i><b id="lastTime">--</b></span>
+        <span class="meta"><i>余额</i><b id="lastBalance">--</b></span>
+        <span class="meta"><i>耗时</i><b id="lastDuration">--</b></span>
+        <span class="meta"><i>触发</i><b id="lastTrigger">--</b></span>
+      </div>
+    </div>
+    <div class="board-side">
+      <div>
+        <div class="board-k">距下次值守</div>
+        <div class="countdown" id="countdown">--:--:--</div>
+      </div>
+      <div class="board-sched">
+        <span class="chip" id="scheduleText">--</span>
+        <span class="board-next" id="nextAt">--</span>
+      </div>
+      <div class="board-actions">
+        <button type="button" class="btn btn-brass" id="checkinBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>手动签到
+        </button>
+        <button type="button" class="btn btn-line" id="refreshBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>刷新
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 指标 ============ -->
+  <section class="grid-3 reveal" aria-label="运行指标">
+
+    <article class="panel">
+      <div class="panel-head"><h2>运行计划</h2><span class="pill spacer" id="gCronStatus">--</span></div>
+      <ul class="kv">
+        <li><i>定时规则</i><b id="gCronSchedule">--</b></li>
+        <li><i>下次执行</i><b id="gNextRun">--</b></li>
+        <li><i>随机延迟</i><b id="gRandomDelay">--</b></li>
+        <li><i>最近成功</i><b id="gLastSuccess">--</b></li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head"><h2>风控与熔断</h2><span class="pill spacer" id="gPause">--</span></div>
+      <div class="gauges">
+        <div class="gauge" id="gaugeFail" data-tone="jade">
+          <div class="gauge-top"><i>连续失败</i><b><span id="gFail">0</span> <em>/ <span id="gFailMax">3</span></em></b></div>
+          <div class="track"><span id="gFailBar"></span></div>
+        </div>
+        <div class="gauge" id="gaugeClicked" data-tone="jade">
+          <div class="gauge-top"><i>连续不确定</i><b id="gClicked">0</b></div>
+          <div class="track"><span id="gClickedBar"></span></div>
+        </div>
+        <div class="gauge" id="gaugeSkip" data-tone="jade">
+          <div class="gauge-top"><i>连续跳过</i><b id="gSkip">0</b></div>
+          <div class="track"><span id="gSkipBar"></span></div>
+        </div>
+      </div>
+      <ul class="kv"><li><i>跳过概率</i><b id="gSkipProb">--</b></li></ul>
+      <button type="button" class="btn btn-amber btn-block btn-sm" id="resumeBtn" style="margin-top:12px" hidden>恢复定时签到</button>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head"><h2>账户与诊断</h2><span class="pill spacer" id="gScreenshot">--</span></div>
+      <ul class="kv">
+        <li><i>账号</i><b id="gAccount">--</b></li>
+        <li><i>站点</i><b id="gUrl">--</b></li>
+        <li><i>上次检查</i><b id="gLastChecked">--</b></li>
+      </ul>
+      <div class="shot" id="shotBox" hidden>
+        <span class="shot-time" id="gShotTime">--</span>
+        <img id="screenshotImg" alt="最近一次失败时的页面截图" src="">
+        <button type="button" class="btn btn-line btn-sm btn-block" id="shotOpen" style="margin-top:9px">查看大图</button>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- ============ 日志 + 运行记录 ============ -->
+  <section class="split reveal">
+
+    <article class="panel">
+      <div class="panel-head"><h2>运行日志</h2><span class="pill spacer" id="logCount"></span></div>
+      <div class="log-toolbar">
+        <div class="seg" role="group" aria-label="日志级别过滤">
+          <button type="button" data-level="all" aria-pressed="true">全部</button>
+          <button type="button" data-level="INFO" aria-pressed="false">信息</button>
+          <button type="button" data-level="WARN" aria-pressed="false">警告</button>
+          <button type="button" data-level="ERROR" aria-pressed="false">错误</button>
+        </div>
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="logSearch" placeholder="搜索日志…" aria-label="搜索日志">
+        </label>
+        <label class="toggle"><input type="checkbox" id="logWrap" checked>换行</label>
+        <label class="toggle"><input type="checkbox" id="autoScroll" checked>跟随</label>
+        <button type="button" class="btn btn-line btn-sm" id="logCopyBtn">复制</button>
+        <button type="button" class="btn btn-line btn-sm" id="logsRefreshBtn">刷新</button>
+        <button type="button" class="btn btn-verm btn-sm spacer" id="clearLogsBtn">清空</button>
+      </div>
+      <div class="logbox wrap-soft" id="logBox">
+        <div class="empty"><b>加载中</b><span>正在读取运行日志…</span></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head"><h2>运行记录</h2><span class="pill spacer" id="historyCount"></span></div>
+      <ul class="hist" id="historyList"></ul>
+    </article>
+
+  </section>
+
+  <!-- ============ 配置中心 ============ -->
+  <section class="panel settings reveal" id="settingsPanel">
+    <div class="settings-head" id="settingsToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="settingsBody">
+      <h2>配置中心</h2>
+      <span class="pill brass" data-tone="brass">敏感项已脱敏</span>
+      <svg class="chev spacer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="settings-body" id="settingsBody">
+      <form id="envForm" novalidate>
+
+        <div class="fieldset">
+          <h3>账号与站点</h3>
+          <div class="fields">
+            <label class="field"><span class="field-k">MEIMOAI_ACCOUNT <code>登录账号</code></span><input name="MEIMOAI_ACCOUNT" placeholder="手机号 / 邮箱" autocomplete="off"></label>
+            <label class="field"><span class="field-k">MEIMOAI_PASSWORD <code>登录密码</code></span><input name="MEIMOAI_PASSWORD" type="password" placeholder="******** = 保持，留空 = 清除" autocomplete="new-password"></label>
+            <label class="field wide"><span class="field-k">MEIMOAI_URL <code>站点地址</code></span><input name="MEIMOAI_URL" placeholder="https://meimoai13.com/" autocomplete="off"></label>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <h3>运行计划</h3>
+          <div class="fields">
+            <label class="field wide"><span class="field-k">CRON_SCHEDULE <code>分 时 日 月 周</code></span><input name="CRON_SCHEDULE" id="cronInput" placeholder="0 1 * * *" spellcheck="false" autocomplete="off"><span class="field-hint" id="cronHint">每次保存都会重新装载系统 cron</span></label>
+            <label class="field"><span class="field-k">RANDOM_DELAY <code>随机延迟</code></span><select name="RANDOM_DELAY"><option value="true">开启</option><option value="false">关闭</option></select></label>
+            <label class="field"><span class="field-k">RANDOM_DELAY_MAX_MINUTES</span><input name="RANDOM_DELAY_MAX_MINUTES" placeholder="300" inputmode="numeric" autocomplete="off"><span class="field-hint">0 ~ 1440 分钟</span></label>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <h3>风控与熔断</h3>
+          <div class="fields">
+            <label class="field"><span class="field-k">SKIP_PROBABILITY <code>跳过概率</code></span><input name="SKIP_PROBABILITY" placeholder="0.05" inputmode="decimal" autocomplete="off"><span class="field-hint">0 ~ 1，0 表示每天必签</span></label>
+            <label class="field"><span class="field-k">MAX_CONSECUTIVE_FAILURES</span><input name="MAX_CONSECUTIVE_FAILURES" placeholder="3" inputmode="numeric" autocomplete="off"><span class="field-hint">达到阈值自动暂停定时签到</span></label>
+            <label class="field wide"><span class="field-k">PROXY_SERVER <code>出口代理（可选）</code></span><input name="PROXY_SERVER" placeholder="http://host:port" autocomplete="off"></label>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <h3>推送通知</h3>
+          <div class="fields">
+            <label class="field"><span class="field-k">WANWAN_PUSH_TOKEN</span><input name="WANWAN_PUSH_TOKEN" placeholder="可选" autocomplete="off"></label>
+            <label class="field"><span class="field-k">PUSHPLUS_TOKEN</span><input name="PUSHPLUS_TOKEN" placeholder="可选" autocomplete="off"></label>
+            <label class="field"><span class="field-k">SERVERCHAN_SENDKEY</span><input name="SERVERCHAN_SENDKEY" placeholder="可选" autocomplete="off"></label>
+            <label class="field"><span class="field-k">WEBHOOK_URL</span><input name="WEBHOOK_URL" placeholder="可选" autocomplete="off"></label>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <h3>飞书企业 SSO</h3>
+          <div class="fields">
+            <label class="field"><span class="field-k">FEISHU_SSO_ENABLED <code>飞书登录</code></span><select name="FEISHU_SSO_ENABLED"><option value="false">关闭</option><option value="true">开启</option></select><span class="field-hint">开启后登录页出现「飞书一键登录」</span></label>
+            <label class="field"><span class="field-k">FEISHU_APP_ID</span><input name="FEISHU_APP_ID" placeholder="cli_xxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false"></label>
+            <label class="field"><span class="field-k">FEISHU_APP_SECRET</span><input name="FEISHU_APP_SECRET" type="password" placeholder="******** = 保持，留空 = 清除" autocomplete="new-password"></label>
+            <label class="field wide"><span class="field-k">FEISHU_REDIRECT_URI <code>回调地址</code></span><input name="FEISHU_REDIRECT_URI" placeholder="https://your-domain.com/api/auth/feishu/callback" autocomplete="off" spellcheck="false"><span class="field-hint warn">必须与飞书开放平台「安全设置 → 重定向 URL」完全一致（含协议、域名与端口）</span></label>
+            <label class="field wide"><span class="field-k">FEISHU_ALLOWED_TENANT_KEYS <code>企业白名单</code></span><input name="FEISHU_ALLOWED_TENANT_KEYS" placeholder="2cxxxxxxxxxxxx（逗号分隔，可留空）" autocomplete="off" spellcheck="false"><span class="field-hint">两项白名单都留空 = 拒绝所有飞书登录，请至少填一项</span></label>
+            <label class="field wide"><span class="field-k">FEISHU_ALLOWED_OPEN_IDS <code>用户白名单</code></span><input name="FEISHU_ALLOWED_OPEN_IDS" placeholder="ou_xxxxxxxxxxxxxxxx, ou_yyyyyyyyyyyyyyyy" autocomplete="off" spellcheck="false"><span class="field-hint">按人放行更稳妥；open_id 可由一次登录后的日志获得</span></label>
+            <label class="field wide"><span class="field-k">FEISHU_SCOPE <code>授权 scope（可选）</code></span><input name="FEISHU_SCOPE" placeholder="留空 = 使用应用默认权限" autocomplete="off" spellcheck="false"></label>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <h3>控制台安全</h3>
+          <div class="fields">
+            <label class="field wide"><span class="field-k">WEB_PASSWORD <code>管理密码</code></span><input name="WEB_PASSWORD" type="password" placeholder="******** = 保持，留空 = 关闭认证" autocomplete="new-password"><span class="field-hint warn">修改后所有登录会话立即失效。留空时若飞书 SSO 已开启仍可登录（飞书作为唯一入口）；飞书开启时建议保留一个应急管理密码。</span></label>
+            <label class="field wide"><span class="field-k">WEB_TRUST_PROXY <code>反向代理信任</code></span><input name="WEB_TRUST_PROXY" placeholder="留空/false、true、1、loopback 或 IP/CIDR" autocomplete="off" spellcheck="false"><span class="field-hint">仅在明确受控的反向代理后配置；修改后需重启容器生效。</span></label>
+          </div>
+        </div>
+
+        <div class="form-foot">
+          <span class="dirty" id="formDirty" hidden>有未保存的修改</span>
+          <span class="form-msg" id="formMsg" role="status"></span>
+          <button type="submit" class="btn btn-brass spacer" id="saveEnvBtn">保存配置</button>
+        </div>
+
+      </form>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>MeimoAI 值守台 · 本地部署，配置与日志仅存放于本机数据卷</span>
+    <span>时区 <code>Asia/Shanghai</code> · 定时任务由容器内 <code>cron</code> 触发</span>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ============ 签到进度 / 结果 ============ -->
+<div class="modal" id="checkinModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-card">
+    <div class="modal-icon loading" id="modalIcon"><div class="spinner"></div></div>
+    <div class="modal-title" id="modalTitle">正在签到</div>
+    <div class="modal-msg" id="modalMsg">请稍候…</div>
+    <div class="modal-actions"><button type="button" class="btn btn-brass" id="modalCloseBtn" hidden>知道了</button></div>
+  </div>
+</div>
+
+<!-- ============ 二次确认 ============ -->
+<div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="modal-card">
+    <div class="modal-icon fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="modal-title" id="confirmTitle">确认操作</div>
+    <div class="modal-msg" id="confirmMsg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-line" id="confirmCancel">取消</button>
+      <button type="button" class="btn btn-verm" id="confirmOk">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 截图灯箱 ============ -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="错误截图预览">
+  <img id="lightboxImg" alt="签到失败时的页面截图">
+  <div class="lightbox-bar">
+    <a class="btn btn-line btn-sm" id="lightboxDownload" download="meimoai-checkin-error.png" href="#">下载截图</a>
+    <button type="button" class="btn btn-brass btn-sm" id="lightboxClose">关闭</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   MeimoAI 值守台 · 前端逻辑
+   全部事件通过 addEventListener 绑定（CSP 只允许外链脚本），
+   页面不包含任何 onclick / onkeydown 内联处理器。
+   ============================================================ */
+
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2, '0');
+
+const STATUS_META = {
+  success: { tone: 'ok', verb: '签到成功', pill: '成功' },
+  already: { tone: 'ok', verb: '今日已签到', pill: '已完成' },
+  clicked: { tone: 'warn', verb: '待人工确认', pill: '不确定' },
+  skipped: { tone: 'warn', verb: '本次已跳过', pill: '已跳过' },
+  error: { tone: 'err', verb: '签到失败', pill: '失败' },
+};
+
+const MODAL_ICONS = {
+  loading: '<div class="spinner"></div>',
+  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+  warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  fail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+};
+
+let authRequired = false;
+let passwordEnabled = true;
+let feishuEnabled = false;
+let feishuAppId = '';
+let feishuConfigProblems = [];
+let authenticated = false;
+let pendingAuthError = '';
+let feishuSdkPromise = null;
+let feishuAutoTried = false;
+let feishuAutoRedirectBlocked = false;
+let passwordFallbackOpen = false;
+let cronSchedule = '';
+let countdownTimer = null;
+let clockTimer = null;
+let checkinPollTimer = null;
+let activeRunId = '';
+let rawLogs = [];
+let logLevel = 'all';
+let logKeyword = '';
+let shotObjectUrl = '';
+let lastFocus = null;
+let confirmResolver = null;
+let checkinBtnHtml = '';
+let toastTimer = null;
+
+/* ---------------- 基础工具 ---------------- */
+
+function escHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function toast(msg, type) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type || 'ok');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2600);
+}
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json' };
+}
+
+function parseDate(ts) {
+  if (!ts) return null;
+  const d = new Date(ts);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function fmtDateTime(ts) {
+  const d = parseDate(ts);
+  if (!d) return '--';
+  return d.toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).slice(0, 16).replace('T', ' ');
+}
+
+function fmtShort(ts) {
+  const v = fmtDateTime(ts);
+  return v === '--' ? '--' : v.slice(5);
+}
+
+function fmtClock(ts) {
+  const d = parseDate(ts);
+  if (!d) return ts ? String(ts).slice(11, 19) : '';
+  return d.toLocaleTimeString('sv-SE', { timeZone: 'Asia/Shanghai', hour12: false });
+}
+
+/* 把任意时刻映射成"北京墙上时间"的伪 UTC Date，便于做纯本地算术。 */
+function bjWall(date) {
+  const s = (date || new Date()).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' });
+  return new Date(s.replace(' ', 'T') + 'Z');
+}
+
+function targetText(t) {
+  return t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate())
+    + ' ' + pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes());
+}
+
+/* ---------------- cron 解析 ---------------- */
+
+function cronField(spec, min, max) {
+  const set = new Set();
+  const parts = String(spec === null || spec === undefined ? '' : spec).split(',');
+  if (!parts.length || parts.some((p) => !p.trim())) return null;
+  for (const raw of parts) {
+    const part = raw.trim();
+    let m;
+    if ((m = /^\*\/(\d+)$/.exec(part))) {
+      const step = Number(m[1]);
+      if (step < 1) return null;
+      for (let i = min; i <= max; i += step) set.add(i);
+    } else if (part === '*') {
+      for (let i = min; i <= max; i++) set.add(i);
+    } else if ((m = /^(\d+)-(\d+)(?:\/(\d+))?$/.exec(part))) {
+      const from = Number(m[1]);
+      const to = Number(m[2]);
+      const step = Number(m[3] || 1);
+      if (step < 1 || from > to || from < min || to > max) return null;
+      for (let i = from; i <= to; i += step) set.add(i);
+    } else if ((m = /^(\d+)$/.exec(part))) {
+      const v = Number(m[1]);
+      if (v < min || v > max) return null;
+      set.add(v);
+    } else {
+      return null;
+    }
+  }
+  return set.size ? set : null;
+}
+
+function validateCron(expr) {
+  const f = String(expr || '').trim().split(/\s+/);
+  if (f.length !== 5) return false;
+  const bounds = [[0, 59], [0, 23], [1, 31], [1, 12], [0, 7]];
+  return f.every((field, i) => cronField(field, bounds[i][0], bounds[i][1]) !== null);
+}
+
+function nextRunDate(expr, from) {
+  const f = String(expr || '').trim().split(/\s+/);
+  if (f.length !== 5) return null;
+  const mins = cronField(f[0], 0, 59);
+  const hours = cronField(f[1], 0, 23);
+  const doms = cronField(f[2], 1, 31);
+  const months = cronField(f[3], 1, 12);
+  const dows = cronField(f[4], 0, 7);
+  if (!mins || !hours || !doms || !months || !dows) return null;
+  if (dows.has(7)) { dows.delete(7); dows.add(0); }
+
+  const domRestricted = f[2].trim() !== '*';
+  const dowRestricted = f[4].trim() !== '*';
+  const base = new Date(bjWall(from || new Date()).getTime() + 60000);
+  base.setUTCSeconds(0, 0);
+
+  const minuteList = [...mins].sort((a, b) => a - b);
+  const hourList = [...hours].sort((a, b) => a - b);
+  const dayStart = new Date(base.getTime());
+  dayStart.setUTCHours(0, 0, 0, 0);
+
+  /* 逐天推进，最多覆盖 8 年：Gregorian 里最长的「下一个 2 月 29 日」间隔
+     出现在世纪非闰年附近（如 2096-02-29 → 2104-02-29）。每天只检查
+     月份/星期/日期，再按升序尝试小时和分钟，避免固定小窗口漏掉月度、
+     年度或闰日规则。 */
+  for (let dayOffset = 0; dayOffset <= 366 * 8 + 2; dayOffset++) {
+    const day = new Date(dayStart.getTime() + dayOffset * 86400000);
+    if (!months.has(day.getUTCMonth() + 1)) continue;
+    const domOk = doms.has(day.getUTCDate());
+    const dowOk = dows.has(day.getUTCDay());
+    let dayOk = true;
+    if (domRestricted && dowRestricted) dayOk = domOk || dowOk;
+    else if (domRestricted) dayOk = domOk;
+    else if (dowRestricted) dayOk = dowOk;
+    if (!dayOk) continue;
+
+    for (const hour of hourList) {
+      for (const minute of minuteList) {
+        const candidate = new Date(Date.UTC(
+          day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour, minute
+        ));
+        if (candidate.getTime() >= base.getTime()) return candidate;
+      }
+    }
+  }
+  return null;
+}
+/* ---------------- 倒计时 ---------------- */
+
+function tickCountdown() {
+  const el = $('countdown');
+  const at = $('nextAt');
+  if (!cronSchedule) { el.textContent = '--:--:--'; at.textContent = '未设置定时规则'; return; }
+  const target = nextRunDate(cronSchedule);
+  if (!target) { el.textContent = '--:--:--'; at.textContent = '无法解析该 cron 表达式'; return; }
+  const diff = Math.max(0, target.getTime() - bjWall(new Date()).getTime());
+  const total = Math.floor(diff / 1000);
+  el.textContent = pad(Math.floor(total / 3600)) + ':' + pad(Math.floor((total % 3600) / 60)) + ':' + pad(total % 60);
+  at.textContent = '北京时间 ' + targetText(target);
+}
+
+function startCountdown(expr) {
+  cronSchedule = expr || '';
+  $('scheduleText').textContent = cronSchedule || '未设置';
+  $('scheduleText').title = cronSchedule;
+  if (countdownTimer) clearInterval(countdownTimer);
+  tickCountdown();
+  countdownTimer = setInterval(tickCountdown, 1000);
+}
+
+/* ---------------- 时钟 ---------------- */
+
+function updateClock() {
+  const el = $('clockTime');
+  if (!el) return;
+  el.textContent = new Date().toLocaleTimeString('sv-SE', { timeZone: 'Asia/Shanghai', hour12: false });
+}
+
+/* ---------------- 弹层 ---------------- */
+
+function openOverlay(id, focusId) {
+  const el = $(id);
+  if (!el) return;
+  const alreadyOpen = el.classList.contains('show');
+  if (!alreadyOpen) lastFocus = document.activeElement;
+  el.classList.add('show');
+  const focusTarget = (focusId && $(focusId)) || el.querySelector('.modal-card') || el;
+  if (!focusTarget.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(focusTarget.tagName || '')) {
+    focusTarget.setAttribute('tabindex', '-1');
+  }
+  setTimeout(() => { try { focusTarget.focus(); } catch (e) { /* 忽略 */ } }, 40);
+}
+
+function closeOverlay(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.remove('show');
+  const restore = lastFocus;
+  lastFocus = null;
+  if (restore && document.contains(restore)) { try { restore.focus(); } catch (e) { /* 忽略 */ } }
+}
+
+function showCheckinModal(icon, title, msgHtml, showClose) {
+  const iconEl = $('modalIcon');
+  iconEl.className = 'modal-icon ' + icon;
+  iconEl.innerHTML = MODAL_ICONS[icon] || MODAL_ICONS.loading;
+  $('modalTitle').textContent = title;
+  $('modalMsg').innerHTML = msgHtml;
+  $('modalCloseBtn').hidden = !showClose;
+  openOverlay('checkinModal', showClose ? 'modalCloseBtn' : null);
+}
+
+function dismissCheckin() {
+  if (checkinPollTimer) { clearInterval(checkinPollTimer); checkinPollTimer = null; }
+  unlockCheckinBtn();
+  closeOverlay('checkinModal');
+}
+
+function askConfirm(title, msg) {
+  $('confirmTitle').textContent = title;
+  $('confirmMsg').textContent = msg;
+  openOverlay('confirmModal', 'confirmCancel');
+  return new Promise((resolve) => { confirmResolver = resolve; });
+}
+
+function settleConfirm(value) {
+  closeOverlay('confirmModal');
+  if (confirmResolver) { const r = confirmResolver; confirmResolver = null; r(value); }
+}
+
+function openLightbox() {
+  if (!$('lightboxImg').getAttribute('src')) { toast('暂无可用截图', 'fail'); return; }
+  openOverlay('lightbox', 'lightboxClose');
+}
+
+/* ---------------- 渲染 ---------------- */
+
+function setPill(el, text, tone) {
+  el.textContent = text;
+  if (tone) el.dataset.tone = tone; else delete el.dataset.tone;
+}
+
+function setGauge(gaugeId, barId, ratio, tone) {
+  const value = Number.isFinite(ratio) ? Math.max(0, Math.min(1, ratio)) : 0;
+  $(barId).style.width = (value * 100).toFixed(1) + '%';
+  if (tone) $(gaugeId).dataset.tone = tone;
+}
+
+function renderHero(d) {
+  const run = d.lastRun || null;
+  const meta = STATUS_META[d.lastRunStatus] || { tone: '', verb: run ? '状态未知' : '暂无记录', pill: run ? '未知' : '未运行' };
+
+  $('lastState').textContent = meta.verb;
+  const dot = $('lastStateDot');
+  if (meta.tone) dot.dataset.tone = meta.tone; else delete dot.dataset.tone;
+  setPill($('lastPill'), meta.pill, meta.tone);
+
+  let detail = '还没有运行记录，点击「手动签到」可以立即执行一次。';
+  if (run) {
+    if (d.lastRunStatus === 'success') detail = '余额 ' + (run.balanceAfter || '未识别') + (run.gained ? '，本次增加 ' + run.gained : '');
+    else if (d.lastRunStatus === 'already') detail = '今天已经签到过了，余额 ' + (run.balanceAfter || '未识别');
+    else if (d.lastRunStatus === 'clicked') detail = '页面已点击，但没有检测到成功文案，建议人工核对截图或登录站点确认。';
+    else if (d.lastRunStatus === 'skipped') detail = '按跳过概率主动放弃本次执行，当天不会自动补签。';
+    else if (d.lastRunStatus === 'error') detail = run.error ? String(run.error) : '签到过程中出现未知错误。';
+  }
+  $('lastDetail').textContent = detail;
+
+  $('lastTime').textContent = fmtDateTime(run && run.ts);
+  $('lastBalance').textContent = run && run.balanceAfter ? run.balanceAfter : '--';
+  $('lastDuration').textContent = run && run.durationMs ? (run.durationMs / 1000).toFixed(1) + 's' : '--';
+  $('lastTrigger').textContent = run ? (run.trigger === 'manual' ? '手动' : '定时') : '--';
+}
+
+function renderMetrics(d) {
+  const cronOn = d.cronStatus === '已启用';
+  setPill($('gCronStatus'), d.cronStatus || '--', cronOn ? 'ok' : 'warn');
+  $('gCronSchedule').textContent = d.cronSchedule || '--';
+
+  const nx = nextRunDate(d.cronSchedule);
+  $('gNextRun').textContent = nx ? targetText(nx).slice(5) : '--';
+  $('gRandomDelay').textContent = d.randomDelay === 'true' ? '开启 · 0 ~ ' + (d.randomDelayMax || 0) + ' 分钟' : '关闭';
+  $('gLastSuccess').textContent = d.lastSuccessDate || '--';
+
+  const maxFail = Number(d.maxConsecutiveFailures) || 0;
+  const fails = Number(d.consecutiveFailures) || 0;
+  const clicked = Number(d.consecutiveClicked) || 0;
+  const skips = Number(d.consecutiveSkips) || 0;
+
+  $('gFail').textContent = String(fails);
+  $('gFailMax').textContent = String(maxFail);
+  setGauge('gaugeFail', 'gFailBar', maxFail > 0 ? fails / maxFail : 0,
+    maxFail > 0 && fails >= maxFail ? 'verm' : (fails > 0 ? 'amber' : 'jade'));
+
+  $('gClicked').textContent = String(clicked);
+  setGauge('gaugeClicked', 'gClickedBar', clicked / 5, clicked > 0 ? 'amber' : 'jade');
+
+  $('gSkip').textContent = String(skips);
+  setGauge('gaugeSkip', 'gSkipBar', skips / 5, skips > 0 ? 'amber' : 'jade');
+
+  const prob = Number(d.skipProbability);
+  $('gSkipProb').textContent = Number.isFinite(prob)
+    ? (prob <= 0 ? '关闭 (0)' : (prob * 100).toFixed(prob * 100 % 1 ? 1 : 0) + '%')
+    : '--';
+
+  setPill($('gPause'), d.paused ? '已暂停' : '正常', d.paused ? 'err' : 'ok');
+  $('gPause').title = d.pausedReason || '';
+  $('resumeBtn').hidden = !d.paused;
+
+  $('gAccount').textContent = d.account || '未设置';
+  $('gUrl').textContent = d.url || '--';
+  $('gLastChecked').textContent = d.lastCheckedDate || '--';
+  setPill($('gScreenshot'), d.hasErrorScreenshot ? '有截图' : '无截图', d.hasErrorScreenshot ? 'err' : 'ok');
+}
+
+function renderHistory(d) {
+  const list = $('historyList');
+  const hist = Array.isArray(d.history) ? d.history : [];
+  $('historyCount').textContent = hist.length ? hist.length + ' 条' : '';
+  if (!hist.length) {
+    list.innerHTML = '<li><div class="empty" style="width:100%"><b>暂无运行记录</b><span>每次签到结束后都会在这里留档</span></div></li>';
+    return;
+  }
+  list.innerHTML = hist.map((h) => {
+    const meta = STATUS_META[h.status] || { tone: '', verb: h.status || '未知' };
+    const sub = fmtShort(h.ts) + ' · ' + (h.trigger === 'manual' ? '手动' : '定时');
+    let gain = '';
+    if (h.gained) gain = '+' + escHtml(h.gained);
+    else if (h.balanceAfter) gain = '余额 ' + escHtml(h.balanceAfter);
+    return '<li><span class="lamp"' + (meta.tone ? ' data-tone="' + meta.tone + '"' : '') + '></span>'
+      + '<span class="hist-main"><b>' + escHtml(meta.verb) + '</b><span>' + escHtml(sub) + '</span></span>'
+      + '<span class="hist-gain">' + gain + '</span></li>';
+  }).join('');
+}
+
+async function loadScreenshot() {
+  try {
+    const r = await fetch('/api/screenshot?t=' + Date.now(), { headers: authHeaders(), cache: 'no-store' });
+    if (r.status === 401) { checkAuth(); return; }
+    if (!r.ok) return;
+    const url = URL.createObjectURL(await r.blob());
+    if (shotObjectUrl) URL.revokeObjectURL(shotObjectUrl);
+    shotObjectUrl = url;
+    $('screenshotImg').src = url;
+    $('lightboxImg').src = url;
+    $('lightboxDownload').href = url;
+  } catch (e) { /* 截图加载失败不影响主流程 */ }
+}
+
+function renderShot(d) {
+  const box = $('shotBox');
+  if (!d.hasErrorScreenshot) {
+    box.hidden = true;
+    if (shotObjectUrl) { URL.revokeObjectURL(shotObjectUrl); shotObjectUrl = ''; }
+    $('screenshotImg').removeAttribute('src');
+    $('lightboxImg').removeAttribute('src');
+    $('lightboxDownload').removeAttribute('href');
+    return;
+  }
+  box.hidden = false;
+  $('gShotTime').textContent = '截图时间 · ' + (d.screenshotTime || '未知');
+  loadScreenshot();
+}
+
+function setBeacon(d) {
+  const b = $('beacon');
+  const txt = $('beaconText');
+  if (!d) { b.dataset.tone = 'err'; txt.textContent = '连接异常'; return; }
+  if (d.paused) { b.dataset.tone = 'err'; txt.textContent = '已熔断暂停'; return; }
+  if (d.hasErrorScreenshot || Number(d.consecutiveFailures) > 0 || Number(d.consecutiveClicked) > 0) {
+    b.dataset.tone = 'warn'; txt.textContent = '需要关注'; return;
+  }
+  if (d.cronStatus === '已启用') { b.dataset.tone = 'ok'; txt.textContent = '运行正常'; return; }
+  b.dataset.tone = 'warn'; txt.textContent = '定时未启用';
+}
+
+async function loadStatus() {
+  try {
+    const r = await fetch('/api/status', { headers: authHeaders(), cache: 'no-store' });
+    if (r.status === 401) { checkAuth(); return; }
+    if (!r.ok) throw new Error('status ' + r.status);
+    const d = await r.json();
+    renderHero(d);
+    renderMetrics(d);
+    renderHistory(d);
+    renderShot(d);
+    setBeacon(d);
+    startCountdown(d.cronSchedule);
+  } catch (e) {
+    setBeacon(null);
+    toast('加载状态失败', 'fail');
+  }
+}
+
+/* ---------------- 日志 ---------------- */
+
+function parseLogLine(raw) {
+  const m = /^(\S+)\s+\[(INFO|WARN|ERROR|STEP)\]\s*([\s\S]*)$/.exec(raw);
+  if (m) return { ts: m[1], level: m[2], msg: m[3] };
+  return { ts: '', level: '', msg: raw };
+}
+
+const HIGHLIGHT = /(签到成功|今日已签到|已经签到|已点击签到|签到失败|已跳过|跳过|风控|熔断|已暂停|人工确认|失败|错误|异常|超时|无法|拒绝)/g;
+const BAD_WORD = /(失败|错误|异常|超时|无法|拒绝)/;
+
+function renderLogs() {
+  const box = $('logBox');
+  const prevTop = box.scrollTop;
+  const kw = logKeyword.trim().toLowerCase();
+  const filtered = rawLogs.filter((line) => {
+    const p = parseLogLine(line);
+    if (logLevel !== 'all' && p.level !== logLevel) return false;
+    if (kw && !line.toLowerCase().includes(kw)) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    box.innerHTML = '<div class="empty"><b>' + (rawLogs.length ? '没有匹配的日志' : '暂无日志')
+      + '</b><span>' + (rawLogs.length ? '换个级别或关键词再试试' : '签到运行后日志会显示在这里') + '</span></div>';
+    return;
+  }
+
+  box.innerHTML = filtered.map((line) => {
+    const p = parseLogLine(line);
+    const lv = p.level || 'RAW';
+    const msg = escHtml(p.msg).replace(HIGHLIGHT, (m) => '<span class="' + (BAD_WORD.test(m) ? 'hl-bad' : 'hl') + '">' + m + '</span>');
+    return '<div class="ln" data-lv="' + lv + '">'
+      + '<span class="ln-t">' + escHtml(fmtClock(p.ts)) + '</span>'
+      + '<span class="ln-lv">' + escHtml(lv) + '</span>'
+      + '<span class="ln-m">' + msg + '</span></div>';
+  }).join('');
+
+  if ($('autoScroll').checked) box.scrollTop = box.scrollHeight;
+  else box.scrollTop = prevTop;
+}
+
+async function loadLogs(silent) {
+  try {
+    const r = await fetch('/api/logs?limit=400', { headers: authHeaders(), cache: 'no-store' });
+    if (r.status === 401) { checkAuth(); return; }
+    if (!r.ok) throw new Error('logs ' + r.status);
+    const d = await r.json();
+    rawLogs = Array.isArray(d.lines) ? d.lines : [];
+    $('logCount').textContent = d.total ? d.total + ' 行' : '';
+    renderLogs();
+  } catch (e) {
+    if (!silent) toast('加载日志失败', 'fail');
+  }
+}
+
+function setLogLevel(level) {
+  logLevel = level;
+  document.querySelectorAll('.seg button[data-level]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.level === level));
+  });
+  renderLogs();
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) resolve(); else reject(new Error('copy rejected'));
+    } catch (e) { reject(e); }
+  });
+}
+
+async function copyLogs() {
+  if (!rawLogs.length) { toast('没有可复制的日志', 'fail'); return; }
+  try {
+    await copyText(rawLogs.join('\n'));
+    toast('日志已复制到剪贴板');
+  } catch (e) {
+    toast('浏览器拒绝了复制操作', 'fail');
+  }
+}
+
+async function clearLogs() {
+  const ok = await askConfirm('清空日志与截图', '将删除全部运行日志和错误截图，此操作不可撤销。');
+  if (!ok) return;
+  try {
+    const r = await fetch('/api/logs/clear', { method: 'POST', headers: authHeaders() });
+    if (r.status === 401) { checkAuth(); return; }
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || '清空失败', 'fail'); return; }
+    rawLogs = [];
+    $('logCount').textContent = '';
+    renderLogs();
+    toast('日志与截图已清空');
+    loadStatus();
+  } catch (e) { toast('清空失败', 'fail'); }
+}
+
+/* ---------------- 配置 ---------------- */
+
+function markDirty(state) {
+  $('formDirty').hidden = !state;
+}
+
+function setFormMsg(text, tone) {
+  const el = $('formMsg');
+  el.textContent = text || '';
+  el.className = 'form-msg' + (tone ? ' ' + tone : '');
+}
+
+function validateCronInput() {
+  const input = $('cronInput');
+  const hint = $('cronHint');
+  const v = input.value.trim();
+  if (!v) {
+    input.setAttribute('aria-invalid', 'true');
+    hint.className = 'field-hint err';
+    hint.textContent = '定时规则不能为空，容器重启时会因为 cron 初始化失败而反复退出。';
+    return true;
+  }
+  if (!validateCron(v)) {
+    input.setAttribute('aria-invalid', 'true');
+    hint.className = 'field-hint err';
+    hint.textContent = '不是合法的 5 段 cron 表达式，例如 0 1 * * *。';
+    return true;
+  }
+  input.removeAttribute('aria-invalid');
+  hint.className = 'field-hint';
+  const nx = nextRunDate(v);
+  hint.textContent = nx ? '解析正常 · 下次执行：' + targetText(nx) + '（北京时间）' : '解析正常。';
+  return false;
+}
+
+async function loadEnv() {
+  try {
+    const r = await fetch('/api/env', { headers: authHeaders(), cache: 'no-store' });
+    if (r.status === 401) { checkAuth(); return; }
+    if (!r.ok) throw new Error('env ' + r.status);
+    const d = await r.json();
+    const form = $('envForm');
+    Object.keys(d).forEach((k) => {
+      const field = form.querySelector('[name="' + k + '"]');
+      if (field) field.value = d[k] === null || d[k] === undefined ? '' : d[k];
+    });
+    markDirty(false);
+    setFormMsg('', '');
+    validateCronInput();
+  } catch (e) { /* 静默失败，避免打断主流程 */ }
+}
+
+async function saveEnv(e) {
+  if (e) e.preventDefault();
+  if (validateCronInput()) {
+    toast('定时规则不合法，请先修正', 'fail');
+    $('cronInput').focus();
+    return;
+  }
+  const form = $('envForm');
+  const data = {};
+  new FormData(form).forEach((v, k) => { data[k] = v; });
+  const btn = $('saveEnvBtn');
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '保存中…';
+  setFormMsg('', '');
+  try {
+    const r = await fetch('/api/env', { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) });
+    if (r.status === 401) { checkAuth(); return; }
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setFormMsg(d.error || '保存失败', 'err');
+      toast(d.error || '保存失败', 'fail');
+      return;
+    }
+    markDirty(false);
+    if (d.passwordChanged) {
+      setFormMsg('配置已保存，管理密码已变更，请重新登录。', 'ok');
+      toast('配置已保存，请重新登录');
+      checkAuth();
+      return;
+    }
+    if (d.cronWarning) {
+      setFormMsg(d.cronWarning, 'err');
+      toast('配置已保存，但 cron 重载失败', 'fail');
+    } else {
+      setFormMsg('配置已保存', 'ok');
+      toast('配置已保存');
+    }
+    await loadStatus();
+    await loadEnv();
+  } catch (err) {
+    setFormMsg('保存失败：无法连接服务器', 'err');
+    toast('保存失败', 'fail');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+
+/* ---------------- 签到 ---------------- */
+
+function lockCheckinBtn() {
+  const btn = $('checkinBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="width:15px;height:15px;border-width:2px"></span>签到中';
+}
+
+function unlockCheckinBtn() {
+  const btn = $('checkinBtn');
+  btn.disabled = false;
+  if (checkinBtnHtml) btn.innerHTML = checkinBtnHtml;
+}
+
+function finishCheckin(d) {
+  if (checkinPollTimer) { clearInterval(checkinPollTimer); checkinPollTimer = null; }
+  unlockCheckinBtn();
+  const result = d.lastResult || '';
+  if (d.lastRunStatus === 'success') {
+    showCheckinModal('success', '签到成功', escHtml(result), true);
+  } else if (d.lastRunStatus === 'already') {
+    showCheckinModal('success', '今日已签到', escHtml(result), true);
+  } else if (d.lastRunStatus === 'clicked') {
+    showCheckinModal('warn', '结果待人工确认', escHtml(result) + '<span class="detail">没有检测到成功文案，请人工核对页面状态。</span>', true);
+  } else if (d.lastRunStatus === 'skipped') {
+    showCheckinModal('warn', '本次已跳过', escHtml(result) + '<span class="detail">按概率跳过当天不会自动补签。</span>', true);
+  } else {
+    showCheckinModal('fail', '签到失败', escHtml(result || '签到过程中出现错误'), true);
+  }
+  loadStatus();
+  loadLogs(true);
+}
+
+function pollCheckin(startedAt) {
+  if (checkinPollTimer) clearInterval(checkinPollTimer);
+  let ticks = 0;
+  checkinPollTimer = setInterval(async () => {
+    ticks += 1;
+    try {
+      const r = await fetch('/api/status', { headers: authHeaders(), cache: 'no-store' });
+      if (r.status === 401) {
+        if (checkinPollTimer) { clearInterval(checkinPollTimer); checkinPollTimer = null; }
+        unlockCheckinBtn();
+        closeOverlay('checkinModal');
+        activeRunId = '';
+        checkAuth();
+        return;
+      }
+      const d = await r.json();
+      const run = d.lastRun || {};
+      const isThisRun = activeRunId
+        ? run.runId === activeRunId
+        : (!run.runId && Date.parse(run.ts || '') >= startedAt);
+      if (isThisRun && STATUS_META[d.lastRunStatus]) { finishCheckin(d); return; }
+    } catch (e) { /* 单次轮询失败不影响后续重试 */ }
+    if (ticks >= 60) {
+      clearInterval(checkinPollTimer);
+      checkinPollTimer = null;
+      closeOverlay('checkinModal');
+      unlockCheckinBtn();
+      toast('签到超时，请查看日志', 'fail');
+      loadStatus();
+      loadLogs(true);
+    }
+  }, 3000);
+}
+
+async function runCheckin() {
+  const btn = $('checkinBtn');
+  if (btn.disabled) return;
+  lockCheckinBtn();
+  try {
+    const r = await fetch('/api/checkin', { method: 'POST', headers: authHeaders() });
+    const body = await r.json().catch(() => ({}));
+    if (r.status === 401) { checkAuth(); unlockCheckinBtn(); return; }
+    if (!r.ok) {
+      unlockCheckinBtn();
+      showCheckinModal('fail', r.status === 409 ? '正在运行' : '无法启动', escHtml(body.error || '签到任务启动失败'), true);
+      return;
+    }
+    activeRunId = body.runId || '';
+    showCheckinModal('loading', '正在签到', '<span class="dots"><i></i><i></i><i></i></span>正在浏览器中执行签到，请保持页面打开', false);
+    pollCheckin(Date.now());
+  } catch (e) {
+    unlockCheckinBtn();
+    showCheckinModal('fail', '连接失败', '无法连接服务器，请检查容器是否正在运行。', true);
+  }
+}
+
+async function resumeSchedule() {
+  const btn = $('resumeBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/state/resume', { method: 'POST', headers: authHeaders() });
+    if (r.status === 401) { checkAuth(); return; }
+    const d = await r.json().catch(() => ({}));
+    if (r.ok) { toast('已恢复定时签到'); await loadStatus(); }
+    else toast(d.error || '恢复失败', 'fail');
+  } catch (e) {
+    toast('恢复失败', 'fail');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function refreshWithBtn(btn) {
+  if (btn.disabled) return;
+  const html = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span>刷新中';
+  try {
+    await Promise.all([loadStatus(), loadLogs(true)]);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = html;
+  }
+}
+
+/* ---------------- 认证 ---------------- */
+
+/* 飞书客户端（含手机端）UA 判定：国际版 Lark、国内版 Feishu 都会命中 */
+const FEISHU_UA_RE = /(Lark|Feishu)/i;
+const AUTH_ERROR_TEXT = {
+  disabled: '飞书登录未启用，请使用管理密码进入。',
+  denied: '已取消飞书授权，可重新点击飞书登录。',
+  state: '登录会话已过期或被重复使用，请重新发起飞书登录。',
+  exchange: '飞书授权码校验失败，请稍后重试或改用管理密码。',
+  userinfo: '无法读取飞书用户信息，请确认应用权限已开通且版本已发布。',
+  forbidden: '当前飞书账号不在允许名单内，请联系管理员加入 open_id 或企业 tenant_key。',
+  unavailable: '飞书登录服务暂时不可用，请稍后重试或改用管理密码。',
+};
+
+function setGateError(msg) {
+  const el = $('loginError');
+  if (!msg) { el.hidden = true; el.textContent = ''; return; }
+  el.hidden = false;
+  el.textContent = msg;
+}
+
+function setGateInfo(msg) {
+  const el = $('gateInfo');
+  if (!el) return;
+  if (!msg) { el.hidden = true; el.textContent = ''; return; }
+  el.hidden = false;
+  el.textContent = msg;
+}
+
+function isFeishuClient() {
+  try {
+    if (new URLSearchParams(location.search).get('feishu') === '1') return true;
+    if (FEISHU_UA_RE.test(navigator.userAgent || '')) return true;
+    return Boolean(window.h5sdk || window.tt || window.ttJSBridge || window.lark);
+  } catch (e) {
+    return false;
+  }
+}
+
+function setGateBusy(btn, busy, busyText) {
+  if (!btn) return;
+  if (busy) {
+    if (!btn.dataset.label) btn.dataset.label = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner spinner-sm"></span>' + escHtml(busyText || '处理中…');
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.label) { btn.innerHTML = btn.dataset.label; delete btn.dataset.label; }
+  }
+}
+
+function showMain() {
+  $('loginOverlay').hidden = true;
+  $('mainContent').hidden = false;
+  $('logoutBtn').hidden = !authRequired;
+  loadStatus();
+  loadEnv();
+  loadLogs(true);
+}
+
+function updateGateCopy() {
+  const sub = $('gateSub');
+  if (sub) {
+    if (passwordFallbackOpen) sub.textContent = '输入管理密码以进入控制面板';
+    else if (feishuEnabled) {
+      sub.textContent = isFeishuClient()
+        ? '正在使用飞书账号免密登录'
+        : '打开后将自动前往飞书扫码登录';
+    } else {
+      sub.textContent = passwordEnabled ? '输入管理密码以进入控制面板' : '当前没有可用的登录方式';
+    }
+  }
+  const hint = $('feishuHint');
+  if (!hint || !feishuEnabled) return;
+  if (pendingAuthError) hint.textContent = '自动跳转已暂停，点击上方按钮可重试飞书授权';
+  else if (isFeishuClient()) hint.textContent = '已检测到飞书客户端，将自动尝试免密登录';
+  else hint.textContent = '页面打开后会自动前往飞书授权页，可直接扫码登录';
+}
+
+function setPasswordFallback(open, focusPassword = false) {
+  passwordFallbackOpen = Boolean(open && passwordEnabled);
+  const pane = $('passwordPane');
+  if (pane) pane.hidden = !passwordFallbackOpen;
+  const divider = $('gateDivider');
+  if (divider) divider.hidden = !passwordFallbackOpen;
+  const form = $('loginForm');
+  if (form) form.hidden = !passwordFallbackOpen;
+  const mark = $('gateMark');
+  if (mark) {
+    mark.disabled = !passwordEnabled;
+    mark.setAttribute('aria-expanded', String(passwordFallbackOpen));
+    mark.setAttribute('aria-label', passwordFallbackOpen ? '隐藏管理密码登录' : '显示管理密码登录');
+  }
+  updateGateCopy();
+  if (passwordFallbackOpen && focusPassword) {
+    setTimeout(() => { try { $('loginPassword').focus(); } catch (e) { /* 忽略 */ } }, 60);
+  }
+}
+
+function togglePasswordFallback() {
+  if (!passwordEnabled) return;
+  setPasswordFallback(!passwordFallbackOpen, !passwordFallbackOpen);
+}
+
+function applyGateOptions() {
+  $('feishuPane').hidden = !feishuEnabled;
+  setPasswordFallback(passwordEnabled && !feishuEnabled, false);
+}
+
+/* 读取服务端回调带回来的稳定错误码（不把内部细节写进 URL） */
+function readAuthErrorFromUrl() {
+  let code = '';
+  try {
+    const params = new URLSearchParams(location.search);
+    code = params.get('auth_error') || '';
+  } catch (e) { /* 老浏览器忽略 */ }
+  if (!code) return false;
+  pendingAuthError = AUTH_ERROR_TEXT[code] || AUTH_ERROR_TEXT.unavailable;
+  feishuAutoRedirectBlocked = true;
+  try {
+    const url = new URL(location.href);
+    url.searchParams.delete('auth_error');
+    history.replaceState(null, '', url.pathname + (url.search ? url.search : '') + url.hash);
+  } catch (e) { /* 忽略 */ }
+  return true;
+}
+
+function loadFeishuSdk() {
+  if (window.h5sdk && window.tt) return Promise.resolve();
+  if (feishuSdkPromise) return feishuSdkPromise;
+  feishuSdkPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/vendor/feishu-h5-sdk.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.h5sdk && window.tt) resolve();
+      else reject(new Error('飞书 JSAPI 未注入全局对象'));
+    };
+    script.onerror = () => reject(new Error('飞书 JSAPI 加载失败'));
+    document.head.appendChild(script);
+  });
+  feishuSdkPromise.catch(() => { feishuSdkPromise = null; });
+  return feishuSdkPromise;
+}
+
+function requestFeishuConfig() {
+  const pageUrl = location.href.split('#')[0];
+  return fetch('/api/auth/feishu/jsapi-config?url=' + encodeURIComponent(pageUrl), { cache: 'no-store' })
+    .then(async (r) => {
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) throw new Error(d.error || 'JSAPI 签名获取失败');
+      return d;
+    });
+}
+
+function requestFeishuAuthCode(config) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (fn, value) => { if (!settled) { settled = true; fn(value); } };
+    try {
+      window.h5sdk.config({
+        appId: config.appId,
+        timestamp: config.timestamp,
+        nonceStr: config.nonceStr,
+        signature: config.signature,
+        jsApiList: config.jsApiList || ['requestAuthCode'],
+        onSuccess: () => { /* ready 回调里继续 */ },
+        onFail: (err) => finish(reject, new Error((err && err.errMsg) || '飞书 JSAPI 配置失败')),
+      });
+      window.h5sdk.ready(() => {
+        try {
+          window.tt.requestAuthCode({
+            appId: config.appId,
+            success: (res) => finish(resolve, res && (res.code || res.authCode)),
+            fail: (err) => finish(reject, new Error((err && err.errMsg) || '免登授权被拒绝')),
+          });
+        } catch (err) { finish(reject, err); }
+      });
+    } catch (err) { finish(reject, err); }
+    setTimeout(() => finish(reject, new Error('飞书免登超时')), 9000);
+  });
+}
+
+async function tryFeishuJsapi() {
+  if (!feishuEnabled || !feishuAppId) return false;
+  const hint = $('feishuHint');
+  try {
+    if (hint) hint.textContent = '正在飞书客户端内免密登录…';
+    await loadFeishuSdk();
+    const config = await requestFeishuConfig();
+    const code = await requestFeishuAuthCode(config);
+    if (!code) throw new Error('未取得授权码');
+    const r = await fetch('/api/auth/feishu/jsapi', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, nonce: config.nonce }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.ok) {
+      throw new Error(AUTH_ERROR_TEXT[d.error] || '免登校验未通过');
+    }
+    authenticated = true;
+    setGateError('');
+    setGateInfo('');
+    showMain();
+    return true;
+  } catch (err) {
+    if (hint) hint.textContent = '免登未成功，点击下方按钮继续飞书授权登录';
+    return false;
+  }
+}
+
+function doFeishuLogin() {
+  if (!feishuEnabled) return;
+  const btn = $('feishuLoginBtn');
+  if (!isFeishuClient()) {
+    window.location.href = '/api/auth/feishu/start';
+    return;
+  }
+  setGateBusy(btn, true, '飞书免登中…');
+  tryFeishuJsapi().then((ok) => {
+    setGateBusy(btn, false);
+    if (!ok) window.location.href = '/api/auth/feishu/start';
+  });
+}
+
+async function checkAuth(options = {}) {
+  const allowAutoFeishuRedirect = options.allowAutoFeishuRedirect !== false;
+  readAuthErrorFromUrl();
+  try {
+    const r = await fetch('/api/auth-status', { cache: 'no-store' });
+    const d = await r.json();
+    authRequired = Boolean(d.authRequired);
+    passwordEnabled = d.passwordEnabled !== false;
+    feishuEnabled = Boolean(d.feishuEnabled);
+    feishuAppId = d.feishuAppId || '';
+    feishuConfigProblems = Array.isArray(d.feishuConfigProblems) ? d.feishuConfigProblems : [];
+    authenticated = Boolean(d.authenticated);
+  } catch (e) {
+    toast('无法连接服务器', 'fail');
+    $('mainContent').hidden = true;
+    $('loginOverlay').hidden = false;
+    setGateError('无法连接服务器，请检查容器是否正在运行。');
+    return;
+  }
+
+  if (authenticated || !authRequired) {
+    pendingAuthError = '';
+    feishuAutoRedirectBlocked = false;
+    setGateError('');
+    showMain();
+    return;
+  }
+
+  $('mainContent').hidden = true;
+  $('loginOverlay').hidden = false;
+  applyGateOptions();
+  setGateError(pendingAuthError || '');
+  const info = pendingAuthError
+    ? (passwordEnabled ? '点击上方 logo 可展开管理密码入口。' : '')
+    : (feishuConfigProblems.length
+      ? '飞书 SSO 已开启但配置不完整：' + feishuConfigProblems.join('、')
+      : (feishuEnabled && !passwordEnabled
+        ? '未设置管理密码：当前仅飞书 SSO 可登录，请确保飞书配置长期有效。'
+        : ''));
+  setGateInfo(info);
+  updateGateCopy();
+
+  if (feishuEnabled && !isFeishuClient() && allowAutoFeishuRedirect && !feishuAutoRedirectBlocked) {
+    feishuAutoRedirectBlocked = true;
+    setGateBusy($('feishuLoginBtn'), true, '正在前往飞书扫码…');
+    window.location.href = '/api/auth/feishu/start';
+    return;
+  }
+
+  if (feishuEnabled && isFeishuClient() && !feishuAutoTried) {
+    feishuAutoTried = true;
+    const btn = $('feishuLoginBtn');
+    setGateBusy(btn, true, '飞书免登中…');
+    tryFeishuJsapi().then((ok) => {
+      setGateBusy(btn, false);
+      updateGateCopy();
+      if (!ok) {
+        setGateInfo(passwordEnabled
+          ? '免登未成功，点击上方 logo 可展开管理密码入口，或点击飞书按钮重试。'
+          : '免登未成功，请点击飞书按钮重试。');
+      }
+    });
+  } else if (passwordFallbackOpen) {
+    setTimeout(() => { try { $('loginPassword').focus(); } catch (e) { /* 忽略 */ } }, 80);
+  }
+}
+
+async function doLogin(e) {
+  if (e) e.preventDefault();
+  const btn = $('loginBtn');
+  const label = btn.textContent;
+  const password = $('loginPassword').value;
+  btn.disabled = true;
+  btn.textContent = '验证中…';
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok && d.authenticated === true) {
+      authRequired = Boolean(d.authRequired);
+      authenticated = true;
+      setGateError('');
+      $('loginPassword').value = '';
+      showMain();
+    } else if (r.ok && d.ok) {
+      // 服务端明确回包“未认证”（例如飞书 SSO 未就绪且未设置管理密码），不能当成功处理。
+      authenticated = false;
+      setGateError(d.error || '认证尚未就绪，请检查飞书或管理密码配置');
+    } else {
+      setGateError(d.error || '密码错误');
+      if (passwordEnabled) $('loginPassword').select();
+    }
+  } catch (err) {
+    setGateError('无法连接服务器');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+
+async function logout() {
+  try { await fetch('/api/logout', { method: 'POST', headers: authHeaders() }); } catch (e) { /* 忽略 */ }
+  rawLogs = [];
+  authenticated = false;
+  feishuAutoTried = false;
+  pendingAuthError = '';
+  feishuAutoRedirectBlocked = true;
+  checkAuth({ allowAutoFeishuRedirect: false });
+}
+
+/* ---------------- 设置面板 ---------------- */
+
+function toggleSettings() {
+  const panel = $('settingsPanel');
+  const body = $('settingsBody');
+  const open = !body.classList.contains('open');
+  body.classList.toggle('open', open);
+  panel.classList.toggle('open', open);
+  $('settingsToggle').setAttribute('aria-expanded', String(open));
+}
+
+/* ---------------- 事件绑定 ---------------- */
+
+function bindEvents() {
+  $('loginForm').addEventListener('submit', doLogin);
+  $('gateMark').addEventListener('click', togglePasswordFallback);
+  $('feishuLoginBtn').addEventListener('click', doFeishuLogin);
+  $('logoutBtn').addEventListener('click', logout);
+
+  $('checkinBtn').addEventListener('click', runCheckin);
+  $('refreshBtn').addEventListener('click', (e) => refreshWithBtn(e.currentTarget));
+  $('resumeBtn').addEventListener('click', resumeSchedule);
+
+  const settingsToggle = $('settingsToggle');
+  settingsToggle.addEventListener('click', toggleSettings);
+  settingsToggle.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSettings(); }
+  });
+
+  $('envForm').addEventListener('submit', saveEnv);
+  $('envForm').addEventListener('input', (e) => {
+    markDirty(true);
+    setFormMsg('', '');
+    if (e.target && e.target.id === 'cronInput') validateCronInput();
+  });
+  $('envForm').addEventListener('change', () => markDirty(true));
+  $('cronInput').addEventListener('blur', validateCronInput);
+
+  $('logsRefreshBtn').addEventListener('click', () => loadLogs());
+  $('clearLogsBtn').addEventListener('click', clearLogs);
+  $('logCopyBtn').addEventListener('click', copyLogs);
+  $('logSearch').addEventListener('input', (e) => { logKeyword = e.target.value; renderLogs(); });
+  $('logWrap').addEventListener('change', (e) => {
+    const box = $('logBox');
+    box.classList.toggle('wrap-soft', e.target.checked);
+    box.classList.toggle('wrap-off', !e.target.checked);
+  });
+  document.querySelectorAll('.seg button[data-level]').forEach((b) => {
+    b.addEventListener('click', () => setLogLevel(b.dataset.level));
+  });
+
+  $('modalCloseBtn').addEventListener('click', dismissCheckin);
+  $('confirmCancel').addEventListener('click', () => settleConfirm(false));
+  $('confirmOk').addEventListener('click', () => settleConfirm(true));
+
+  $('screenshotImg').addEventListener('click', openLightbox);
+  $('shotOpen').addEventListener('click', openLightbox);
+  $('lightboxClose').addEventListener('click', () => closeOverlay('lightbox'));
+  $('lightbox').addEventListener('click', (e) => { if (e.target === $('lightbox')) closeOverlay('lightbox'); });
+  $('checkinModal').addEventListener('click', (e) => {
+    if (e.target === $('checkinModal') && !$('modalCloseBtn').hidden) dismissCheckin();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if ($('lightbox').classList.contains('show')) { closeOverlay('lightbox'); return; }
+    if ($('confirmModal').classList.contains('show')) { settleConfirm(false); return; }
+    if ($('checkinModal').classList.contains('show') && !$('modalCloseBtn').hidden) dismissCheckin();
+  });
+}
+
+/* ---------------- 启动 ---------------- */
+
+function init() {
+  checkinBtnHtml = $('checkinBtn').innerHTML;
+  bindEvents();
+  updateClock();
+  clockTimer = setInterval(updateClock, 1000);
+
+  /* 面板可见时保持轻度自动刷新，切到后台就停 */
+  setInterval(() => {
+    if (document.visibilityState !== 'visible' || $('mainContent').hidden) return;
+    loadStatus();
+  }, 30000);
+  setInterval(() => {
+    if (document.visibilityState !== 'visible' || $('mainContent').hidden) return;
+    loadLogs(true);
+  }, 15000);
+
+  checkAuth();
+}
+
+init();
+</script>
+</body>
+</html>
