@@ -299,6 +299,12 @@ test('JSAPI 签名接口拒绝跨域 URL，并返回与 jsapi_ticket 匹配的�
     timestamp: res.body.timestamp,
     url: res.body.url,
   }));
+  // h5sdk.config 要求毫秒级时间戳（13 位）；用秒级会被按 1970 年解析，签名必然失效。
+  assert.match(String(res.body.timestamp), /^\d{13}$/, 'timestamp 必须是毫秒级 13 位整数');
+  assert.ok(
+    Math.abs(Number(res.body.timestamp) - Date.now()) < 60 * 1000,
+    'timestamp 应接近当前时间',
+  );
   assert.equal(mock.calls[0].url, FEISHU_TENANT_TOKEN_URL);
   assert.equal(mock.calls[1].url, FEISHU_JSAPI_TICKET_URL);
 });

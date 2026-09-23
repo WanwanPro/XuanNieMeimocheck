@@ -117,6 +117,20 @@ test('登录门包含飞书 SSO 入口，且 SDK 走本地 vendor', async () => 
   assert.doesNotMatch(js, /https?:\/\/[^""']*feishu[^""']*\.js/i, '不应引用远程飞书 SDK');
 });
 
+test('免登不依赖 h5sdk.config，且链路各段都有超时', async () => {
+  const js = await readFile(join(publicDir, 'app.js'), 'utf8');
+  // requestAuthCode 官方明确「无需进行网页应用鉴权即可调用」，config 失败不能中断免登
+  assert.doesNotMatch(
+    js,
+    /onFail:\s*\(err\)\s*=>\s*finish\(reject/,
+    'h5sdk.config 失败不应中断免登（requestAuthCode 不依赖它）'
+  );
+  assert.match(js, /window\.h5sdk\.ready\(/, '免登必须走 h5sdk.ready + requestAuthCode');
+  assert.match(js, /FEISHU_SDK_TIMEOUT_MS/, 'SDK 加载必须有超时，避免按钮永久忙碌');
+  assert.match(js, /FEISHU_CONFIG_TIMEOUT_MS/, '签名获取必须有超时');
+  assert.match(js, /FEISHU_AUTH_CODE_TIMEOUT_MS/, '授权码等待必须独立超时（要留出用户点「允许」的时间）');
+});
+
 test('桌面端未登录时自动跳飞书，管理密码入口默认隐藏且由 logo 展开', async () => {
   const html = await readFile(join(publicDir, 'index.html'), 'utf8');
   const js = await readFile(join(publicDir, 'app.js'), 'utf8');
