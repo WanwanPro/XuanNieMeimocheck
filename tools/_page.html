@@ -1726,19 +1726,40 @@ function readAuthErrorFromUrl() {
   return true;
 }
 
+/* 免登链路各段超时：SDK 加载与签名获取属"管道"，短超时快速失败；
+   授权码要等用户在确认框上点「允许」，必须给足时间，否则晚到的 code 会被丢弃。 */
+const FEISHU_SDK_TIMEOUT_MS = 8000;
+const FEISHU_CONFIG_TIMEOUT_MS = 8000;
+const FEISHU_AUTH_CODE_TIMEOUT_MS = 60000;
+
+/** 给 Promise 加超时；超时不取消底层操作，只让上层不再无限等待 */
+function withTimeout(promise, ms, message) {
+  let timer = null;
+  const timeout = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).then(
+    (value) => { clearTimeout(timer); return value; },
+    (err) => { clearTimeout(timer); throw err; },
+  );
+}
+
 function loadFeishuSdk() {
   if (window.h5sdk && window.tt) return Promise.resolve();
   if (feishuSdkPromise) return feishuSdkPromise;
   feishuSdkPromise = new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (fn, value) => { if (!settled) { settled = true; fn(value); } };
     const script = document.createElement('script');
     script.src = '/vendor/feishu-h5-sdk.js';
     script.async = true;
     script.onload = () => {
-      if (window.h5sdk && window.tt) resolve();
-      else reject(new Error('飞书 JSAPI 未注入全局对象'));
+      if (window.h5sdk && window.tt) finish(resolve);
+      else finish(reject, new Error('飞书 JSAPI 未注入全局对象'));
     };
-    script.onerror = () => reject(new Error('飞书 JSAPI 加载失败'));
+    script.onerror = () => finish(reject, new Error('飞书 JSAPI 加载失败'));
     document.head.appendChild(script);
+    setTimeout(() => finish(reject, new Error('飞书 JSAPI 加载超时')), FEISHU_SDK_TIMEOUT_MS);
   });
   feishuSdkPromise.catch(() => { feishuSdkPromise = null; });
   return feishuSdkPromise;
@@ -1746,29 +1767,47 @@ function loadFeishuSdk() {
 
 function requestFeishuConfig() {
   const pageUrl = location.href.split('#')[0];
-  return fetch('/api/auth/feishu/jsapi-config?url=' + encodeURIComponent(pageUrl), { cache: 'no-store' })
-    .then(async (r) => {
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d.ok) throw new Error(d.error || 'JSAPI 签名获取失败');
-      return d;
-    });
+  return withTimeout(
+    fetch('/api/auth/feishu/jsapi-config?url=' + encodeURIComponent(pageUrl), { cache: 'no-store' })
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok) throw new Error(d.error || 'JSAPI 签名获取失败');
+        return d;
+      }),
+    FEISHU_CONFIG_TIMEOUT_MS,
+    '飞书 JSAPI 签名获取超时',
+  );
 }
 
+/* requestAuthCode 官方明确「无需进行网页应用鉴权即可调用该接口」，
+   因此 h5sdk.config 只做尽力而为的调用：它失败不再终止免登。
+   否则签名配置一旦有问题，本来不依赖它的免登也会整体失效。 */
 function requestFeishuAuthCode(config) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (fn, value) => { if (!settled) { settled = true; fn(value); } };
     try {
-      window.h5sdk.config({
-        appId: config.appId,
-        timestamp: config.timestamp,
-        nonceStr: config.nonceStr,
-        signature: config.signature,
-        jsApiList: config.jsApiList || ['requestAuthCode'],
-        onSuccess: () => { /* ready 回调里继续 */ },
-        onFail: (err) => finish(reject, new Error((err && err.errMsg) || '飞书 JSAPI 配置失败')),
-      });
+      if (typeof window.h5sdk.error === 'function') {
+        window.h5sdk.error((err) => { console.warn('h5sdk error:', err); });
+      }
+      if (typeof window.h5sdk.config === 'function') {
+        try {
+          window.h5sdk.config({
+            appId: config.appId,
+            timestamp: config.timestamp,
+            nonceStr: config.nonceStr,
+            signature: config.signature,
+            jsApiList: config.jsApiList || ['requestAuthCode'],
+            onSuccess: () => { /* 免登不依赖该回调 */ },
+            onFail: (err) => { console.warn('h5sdk.config 失败（不影响免登）:', err); },
+          });
+        } catch (err) { console.warn('h5sdk.config 异常（不影响免登）:', err); }
+      }
       window.h5sdk.ready(() => {
+        if (!window.tt || typeof window.tt.requestAuthCode !== 'function') {
+          finish(reject, new Error('当前环境不支持飞书免登接口'));
+          return;
+        }
         try {
           window.tt.requestAuthCode({
             appId: config.appId,
@@ -1778,7 +1817,7 @@ function requestFeishuAuthCode(config) {
         } catch (err) { finish(reject, err); }
       });
     } catch (err) { finish(reject, err); }
-    setTimeout(() => finish(reject, new Error('飞书免登超时')), 9000);
+    setTimeout(() => finish(reject, new Error('飞书免登超时')), FEISHU_AUTH_CODE_TIMEOUT_MS);
   });
 }
 

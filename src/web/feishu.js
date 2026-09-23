@@ -40,7 +40,8 @@ export function createPkcePair() {
   return { verifier, challenge };
 }
 
-/** jsapi_ticket 签名：sha1(jsapi_ticket=..&noncestr=..&timestamp=..&url=..) */
+/** jsapi_ticket 签名：sha1(jsapi_ticket=..&noncestr=..&timestamp=..&url=..)
+ *  timestamp 为毫秒级（13 位），与下发给 h5sdk.config 的值必须完全一致。 */
 export function jsapiSignature({ ticket, nonceStr, timestamp, url }) {
   return createHash('sha1')
     .update(`jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`)
@@ -299,11 +300,13 @@ export function createFeishuService({
     return ticket;
   }
 
-  /** 生成 h5sdk.config 所需签名；url 必须是当前页面地址（不含 #） */
+  /** 生成 h5sdk.config 所需签名；url 必须是当前页面地址（不含 #）。
+   *  timestamp 必须是毫秒级（官方 h5sdk.config 文档要求「毫秒级，数据类型不能是 string」，
+   *  签名有效期从该时间戳开始计算）——用秒级会被按 1970 年解析，导致签名校验失败。 */
   async function getJsapiConfig(pageUrl) {
     const cfg = getConfig();
     const ticket = await getJsapiTicket();
-    const timestamp = Math.floor(now() / 1000);
+    const timestamp = now();
     const nonceStr = base64Url(randomBytes(16));
     return {
       appId: cfg.appId,
