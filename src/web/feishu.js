@@ -1,7 +1,7 @@
 // 飞书企业自建应用 SSO。
 //
 // 支持两条通道，最终都落到同一套本地会话：
-//   1) 普通浏览器：OAuth 授权码 + PKCE（accounts.feishu.cn/oauth/v3/token）；
+//   1) 普通浏览器：OAuth 授权码 + PKCE（飞书 v2 token endpoint；v3 对合法 PKCE 会误报 20049）；
 //   2) 飞书客户端 / 手机端：H5 JSAPI requestAuthCode 免登（免跳转，即点即用）。
 //
 // 安全约束：
@@ -15,7 +15,9 @@ import { loadConfig } from '../envfile.js';
 import { appendToLogFile, beijingTime } from '../logger.js';
 
 export const FEISHU_AUTHORIZE_URL = 'https://accounts.feishu.cn/open-apis/authen/v1/authorize';
-export const FEISHU_TOKEN_URL = 'https://accounts.feishu.cn/oauth/v3/token';
+// 飞书 OAuth v3 token endpoint 当前会对合法 S256 PKCE 返回 20049；
+// v2 端点使用同一请求可成功兑换，待官方修复后再评估切回 v3。
+export const FEISHU_TOKEN_URL = 'https://open.feishu.cn/open-apis/authen/v2/oauth/token';
 export const FEISHU_USERINFO_URL = 'https://open.feishu.cn/open-apis/authen/v1/user_info';
 export const FEISHU_TENANT_TOKEN_URL = 'https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal';
 export const FEISHU_JSAPI_TICKET_URL = 'https://open.feishu.cn/open-apis/jssdk/ticket/get';
