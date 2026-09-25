@@ -1729,8 +1729,11 @@ function readAuthErrorFromUrl() {
 /* 免登链路各段超时：SDK 加载与签名获取属"管道"，短超时快速失败；
    授权码要等用户在确认框上点「允许」，必须给足时间，否则晚到的 code 会被丢弃。 */
 const FEISHU_SDK_TIMEOUT_MS = 8000;
+const FEISHU_BRIDGE_TIMEOUT_MS = 2000;
 const FEISHU_CONFIG_TIMEOUT_MS = 8000;
 const FEISHU_AUTH_CODE_TIMEOUT_MS = 60000;
+const FEISHU_AUTH_CODE_RETRY_DELAY_MS = 350;
+const FEISHU_AUTH_CODE_RETRIES = 1;
 
 /** 给 Promise 加超时；超时不取消底层操作，只让上层不再无限等待 */
 function withTimeout(promise, ms, message) {
@@ -1779,29 +1782,70 @@ function requestFeishuConfig() {
   );
 }
 
-/* requestAuthCode 官方明确「无需进行网页应用鉴权即可调用该接口」，
-   因此 h5sdk.config 只做尽力而为的调用：它失败不再终止免登。
-   否则签名配置一旦有问题，本来不依赖它的免登也会整体失效。 */
-function requestFeishuAuthCode(config) {
+/* requestAuthCode 官方示例只要求 h5sdk.ready + requestAuthCode，不需要 h5sdk.config。
+   手机端首次自动免登时原生 bridge 可能稍晚才就绪；先调 config 会让 ready() 等待
+   一个可能丢失的回调，表现就是第一次一直转圈、手动第二次点才成功。 */
+function hasFeishuNativeBridge() {
+  try {
+    const webkit = window.webkit && window.webkit.messageHandlers;
+    return Boolean(
+      window.Lark_Bridge
+      || (webkit && (webkit.invoke || webkit.invokeNative))
+      || (window.LkWebViewJavascriptBridge && typeof window.LkWebViewJavascriptBridge.callHandler === 'function')
+      || (window.WebViewJavascriptBridge && typeof window.WebViewJavascriptBridge.invoke === 'function')
+      || (window.__LarkPCSDK__ && window.__LarkPCSDK__.bridge)
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+function waitForFeishuBridge(timeoutMs = FEISHU_BRIDGE_TIMEOUT_MS) {
+  if (hasFeishuNativeBridge()) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    let done = false;
+    const events = ['WebViewJavascriptBridgeReady', 'LkWebViewJavascriptBridgeReady', 'LarkConfigReady'];
+    const finish = (ready) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      clearInterval(poll);
+      events.forEach((name) => window.removeEventListener(name, check));
+      resolve(ready);
+    };
+    const check = () => { if (hasFeishuNativeBridge()) finish(true); };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    const poll = setInterval(check, 50);
+    events.forEach((name) => window.addEventListener(name, check));
+    check();
+  });
+}
+
+function normalizeFeishuJsapiError(err, fallback) {
+  if (err instanceof Error) return err;
+  const code = err && (err.errCode !== undefined ? err.errCode : err.errno);
+  const message = err && (err.errMsg || err.errorMessage || err.message);
+  const text = [message, code === undefined || code === null || code === '' ? '' : `code=${code}`]
+    .filter(Boolean).join(' ');
+  const error = new Error(text || fallback);
+  if (code !== undefined && code !== null) error.code = code;
+  return error;
+}
+
+function isRetryableFeishuJsapiError(err) {
+  const message = String((err && (err.message || err.errMsg)) || err || '');
+  if (/cancel|denied|拒绝|取消|超时|timeout/i.test(message)) return false;
+  const code = err && err.code;
+  return !['denied', 'forbidden', 'disabled', 'state', 'csrf'].includes(String(code || ''));
+}
+
+function invokeFeishuAuthCode(config) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (fn, value) => { if (!settled) { settled = true; fn(value); } };
     try {
       if (typeof window.h5sdk.error === 'function') {
         window.h5sdk.error((err) => { console.warn('h5sdk error:', err); });
-      }
-      if (typeof window.h5sdk.config === 'function') {
-        try {
-          window.h5sdk.config({
-            appId: config.appId,
-            timestamp: config.timestamp,
-            nonceStr: config.nonceStr,
-            signature: config.signature,
-            jsApiList: config.jsApiList || ['requestAuthCode'],
-            onSuccess: () => { /* 免登不依赖该回调 */ },
-            onFail: (err) => { console.warn('h5sdk.config 失败（不影响免登）:', err); },
-          });
-        } catch (err) { console.warn('h5sdk.config 异常（不影响免登）:', err); }
       }
       window.h5sdk.ready(() => {
         if (!window.tt || typeof window.tt.requestAuthCode !== 'function') {
@@ -1811,14 +1855,38 @@ function requestFeishuAuthCode(config) {
         try {
           window.tt.requestAuthCode({
             appId: config.appId,
-            success: (res) => finish(resolve, res && (res.code || res.authCode)),
-            fail: (err) => finish(reject, new Error((err && err.errMsg) || '免登授权被拒绝')),
+            success: (res) => {
+              const code = res && (res.code || res.authCode);
+              if (code) finish(resolve, code);
+              else finish(reject, new Error('未取得授权码'));
+            },
+            fail: (err) => finish(reject, normalizeFeishuJsapiError(err, '免登授权被拒绝')),
           });
-        } catch (err) { finish(reject, err); }
+        } catch (err) {
+          finish(reject, normalizeFeishuJsapiError(err, '免登调用异常'));
+        }
       });
-    } catch (err) { finish(reject, err); }
+    } catch (err) {
+      finish(reject, normalizeFeishuJsapiError(err, '免登调用异常'));
+    }
     setTimeout(() => finish(reject, new Error('飞书免登超时')), FEISHU_AUTH_CODE_TIMEOUT_MS);
   });
+}
+
+async function requestFeishuAuthCode(config) {
+  await waitForFeishuBridge();
+  let lastError = null;
+  for (let attempt = 0; attempt <= FEISHU_AUTH_CODE_RETRIES; attempt++) {
+    try {
+      return await invokeFeishuAuthCode(config);
+    } catch (err) {
+      lastError = err;
+      if (attempt >= FEISHU_AUTH_CODE_RETRIES || !isRetryableFeishuJsapiError(err)) throw err;
+      console.warn('飞书免登首次失败，自动重试：', err);
+      await new Promise((resolve) => setTimeout(resolve, FEISHU_AUTH_CODE_RETRY_DELAY_MS));
+    }
+  }
+  throw lastError;
 }
 
 async function tryFeishuJsapi() {

@@ -126,6 +126,10 @@ test('免登不依赖 h5sdk.config，且链路各段都有超时', async () => {
     'h5sdk.config 失败不应中断免登（requestAuthCode 不依赖它）'
   );
   assert.match(js, /window\.h5sdk\.ready\(/, '免登必须走 h5sdk.ready + requestAuthCode');
+  assert.doesNotMatch(js, /window\.h5sdk\.config\s*\(/, '免登不应调用 h5sdk.config，避免等待丢失的配置回调');
+  assert.match(js, /waitForFeishuBridge/, '手机端首次免登前应等待原生 bridge');
+  assert.match(js, /FEISHU_AUTH_CODE_RETRIES/, '首次免登失败后应自动重试');
+  assert.match(js, /window\.tt\.requestAuthCode\(/, '免登必须调用 requestAuthCode');
   assert.match(js, /FEISHU_SDK_TIMEOUT_MS/, 'SDK 加载必须有超时，避免按钮永久忙碌');
   assert.match(js, /FEISHU_CONFIG_TIMEOUT_MS/, '签名获取必须有超时');
   assert.match(js, /FEISHU_AUTH_CODE_TIMEOUT_MS/, '授权码等待必须独立超时（要留出用户点「允许」的时间）');
